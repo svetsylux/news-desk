@@ -1,0 +1,1145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sveta's News Desk</title>
+<style>
+  :root {
+    color-scheme: light;
+    --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+    --grid:#e1e0d9; --baseline:#c3c2b7; --border:rgba(11,11,11,.10);
+    --up:#006300; --down:#d03b3b; --accent:#2a78d6; --accent-wash:rgba(42,120,214,.08);
+    --p-wire:#2a78d6; --p-realist:#eb6834; --p-west:#1baf7a; --p-acad:#eda100;
+    --p-ruind:#e87ba4; --p-rust:#008300; --p-rudom:#4a3aa7; --p-none:#898781;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:where(:not([data-theme="light"])) {
+      color-scheme: dark;
+      --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+      --grid:#2c2c2a; --baseline:#383835; --border:rgba(255,255,255,.10);
+      --up:#0ca30c; --down:#d03b3b; --accent:#3987e5; --accent-wash:rgba(57,135,229,.14);
+      --p-wire:#3987e5; --p-realist:#d95926; --p-west:#199e70; --p-acad:#c98500;
+      --p-ruind:#d55181; --p-rust:#008300; --p-rudom:#9085e9;
+    }
+  }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --page:#0d0d0d; --surface:#1a1a19; --ink:#ffffff; --ink2:#c3c2b7; --muted:#898781;
+    --grid:#2c2c2a; --baseline:#383835; --border:rgba(255,255,255,.10);
+    --up:#0ca30c; --down:#d03b3b; --accent:#3987e5; --accent-wash:rgba(57,135,229,.14);
+    --p-wire:#3987e5; --p-realist:#d95926; --p-west:#199e70; --p-acad:#c98500;
+    --p-ruind:#d55181; --p-rust:#008300; --p-rudom:#9085e9;
+  }
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; }
+  body {
+    margin: 0; background: var(--page); color: var(--ink);
+    font: 15px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+  }
+  a { color: inherit; text-decoration: none; }
+  a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+  header.masthead {
+    position: sticky; top: 0; z-index: 40; background: var(--page);
+    border-bottom: 1px solid var(--grid); padding: 10px 20px 0;
+  }
+  .mh-top { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; }
+  .brand {
+    font-family: Charter, 'Iowan Old Style', Georgia, 'Times New Roman', serif;
+    font-size: 26px; font-weight: 700; letter-spacing: .2px; margin: 0;
+  }
+  .dateline { color: var(--ink2); font-size: 13px; }
+  .statusline { color: var(--muted); font-size: 12px; margin-left: auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .statusline .live-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--baseline); margin-right: 4px; }
+  .statusline .live-dot.on { background: var(--up); }
+  .btn {
+    font: 12px system-ui, sans-serif; color: var(--ink2); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 7px; padding: 4px 10px; cursor: pointer;
+  }
+  .btn:hover { background: var(--accent-wash); }
+  .btn[disabled] { opacity: .5; cursor: wait; }
+  .mh-nav { display: flex; gap: 2px; margin-top: 8px; overflow-x: auto; align-items: center; }
+  .tab-btn {
+    border: 0; background: none; color: var(--ink2); font: 13.5px system-ui, sans-serif;
+    padding: 8px 12px; cursor: pointer; border-bottom: 2px solid transparent; white-space: nowrap;
+  }
+  .tab-btn:hover { color: var(--ink); }
+  .tab-btn.active { color: var(--ink); border-bottom-color: var(--accent); font-weight: 600; }
+  .searchwrap { margin-left: auto; display: flex; align-items: center; gap: 8px; padding-bottom: 6px; }
+  #search {
+    font: 13px system-ui, sans-serif; color: var(--ink); background: var(--surface);
+    border: 1px solid var(--border); border-radius: 7px; padding: 5px 10px; width: 190px;
+  }
+  #searchCount { font-size: 11.5px; color: var(--muted); min-width: 70px; }
+
+  main { max-width: 1340px; margin: 0 auto; padding: 18px 20px 60px; }
+  section.tab { display: none; }
+  section.tab.active { display: block; }
+
+  .cols { display: grid; gap: 14px; }
+  .cols.c3 { grid-template-columns: repeat(3, 1fr); }
+  .cols.c2 { grid-template-columns: repeat(2, 1fr); }
+  @media (max-width: 1050px) { .cols.c3 { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 760px)  { .cols.c3, .cols.c2 { grid-template-columns: 1fr; } }
+
+  .colhead {
+    font-size: 12px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase;
+    color: var(--muted); margin: 22px 0 10px; padding-bottom: 5px; border-bottom: 1px solid var(--grid);
+    display: flex; align-items: baseline; gap: 8px;
+  }
+  .colhead .sub { font-weight: 400; text-transform: none; letter-spacing: 0; font-size: 11.5px; }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 14px; margin-bottom: 14px; break-inside: avoid;
+  }
+  .card h3 { margin: 0 0 6px; font-size: 14px; font-weight: 650; display: flex; align-items: center; gap: 7px; flex-wrap: wrap; }
+  .card h3 a:hover { color: var(--accent); text-decoration: none; }
+  .src-dot { width: 7px; height: 7px; border-radius: 50%; flex: 0 0 auto; }
+  .src-dot.live { background: var(--up); }
+  .src-dot.baked { background: var(--baseline); }
+  .src-dot.fail { background: var(--down); }
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; font-size: 10.5px; font-weight: 500;
+    color: var(--ink2); border: 1px solid var(--border); border-radius: 20px; padding: 1px 8px 1px 6px;
+    letter-spacing: .2px; white-space: nowrap;
+  }
+  .badge i { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+  ul.items { list-style: none; margin: 0; padding: 0; }
+  li.it { padding: 6px 0; border-top: 1px solid var(--grid); font-size: 13.5px; }
+  li.it:first-child { border-top: 0; }
+  li.it a { color: var(--ink); }
+  li.it a:visited { color: var(--ink2); }
+  li.it .meta { display: block; font-size: 11.5px; color: var(--muted); margin-top: 2px; }
+  li.it.hiddenBySearch { display: none; }
+  .empty { color: var(--muted); font-size: 12.5px; padding: 6px 0; }
+
+  /* Today */
+  .brief h2, .panel h2 {
+    font-family: Charter, 'Iowan Old Style', Georgia, serif;
+    font-size: 19px; margin: 0 0 10px;
+  }
+  .brief .bgroup { margin: 12px 0 2px; }
+  .brief .bgroup > .glabel {
+    font-size: 11px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--muted);
+  }
+  .brief ul { margin: 6px 0 0; padding-left: 18px; }
+  .brief li { margin: 7px 0; font-size: 14px; }
+  .srcchip { font-size: 11px; color: var(--accent); white-space: nowrap; }
+  .srcchip a { color: var(--accent); }
+  .fxrow { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 4px 0 2px; }
+  .tile { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 9px 12px; }
+  .tile .k { font-size: 11px; color: var(--muted); letter-spacing: .4px; }
+  .tile .v { font-size: 19px; font-weight: 650; font-variant-numeric: tabular-nums; margin-top: 1px; }
+  .tile .d { font-size: 11.5px; font-variant-numeric: tabular-nums; margin-top: 1px; color: var(--ink2); }
+  .tile .d.up { color: var(--up); } .tile .d.down { color: var(--down); }
+  .quicklinks { font-size: 12.5px; color: var(--ink2); margin-top: 8px; }
+  .quicklinks a { color: var(--accent); }
+  .hook { border-left: 3px solid var(--p-acad); padding: 2px 0 2px 11px; margin: 12px 0; }
+  .hook .story { font-size: 13.5px; }
+  .hook .concept { font-size: 12px; color: var(--ink2); margin-top: 4px; }
+  .hook .concept b { color: var(--ink); }
+  .hook .q { font-size: 12.5px; font-style: italic; color: var(--ink2); margin-top: 4px; }
+
+  /* Student Pulse */
+  .pulse-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(310px, 1fr)); gap: 14px; }
+  .pulse-grid .card { margin-bottom: 0; }
+  .pcat { font-size: 10.5px; font-weight: 700; letter-spacing: .9px; text-transform: uppercase; color: var(--accent); }
+  .pt { font-family: Charter, 'Iowan Old Style', Georgia, serif; font-size: 16.5px; font-weight: 700; margin: 2px 0 6px; }
+  .pwhy { font-size: 13px; color: var(--ink2); }
+  .prec { font-size: 12.5px; margin-top: 8px; border-top: 1px solid var(--grid); padding-top: 7px; }
+
+  /* About */
+  .about p { max-width: 78ch; font-size: 14px; color: var(--ink2); }
+  .about p b, .about p strong { color: var(--ink); }
+  .legend { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; align-items: baseline; max-width: 78ch; font-size: 13.5px; color: var(--ink2); margin: 10px 0 18px; }
+  footer { border-top: 1px solid var(--grid); color: var(--muted); font-size: 12px; padding: 14px 20px 30px; text-align: center; }
+</style>
+</head>
+<body>
+<header class="masthead">
+  <div class="mh-top">
+    <h1 class="brand">Sveta&rsquo;s News Desk</h1>
+    <span class="dateline" id="dateline"></span>
+    <span class="statusline">
+      <span><span class="live-dot" id="liveDot"></span><span id="statusText">snapshot</span></span>
+      <button class="btn" id="refreshBtn" title="Re-pull all live feeds">&#8635; Refresh</button>
+      <button class="btn" id="themeBtn" title="Toggle color theme">Theme: Auto</button>
+    </span>
+  </div>
+  <nav class="mh-nav" id="nav">
+    <button class="tab-btn active" data-tab="today">Today</button>
+    <button class="tab-btn" data-tab="geo">Geopolitics</button>
+    <button class="tab-btn" data-tab="econ">Economy &amp; Markets</button>
+    <button class="tab-btn" data-tab="health">Health &amp; Policy</button>
+    <button class="tab-btn" data-tab="michigan">Michigan</button>
+    <button class="tab-btn" data-tab="education">Higher Ed</button>
+    <button class="tab-btn" data-tab="mind">Mind &amp; Cosmos</button>
+    <button class="tab-btn" data-tab="pulse">Student Pulse</button>
+    <button class="tab-btn" data-tab="culture">Culture &amp; Style</button>
+    <button class="tab-btn" data-tab="about">About</button>
+    <span class="searchwrap">
+      <input id="search" type="search" placeholder="Filter headlines&hellip;" aria-label="Filter headlines">
+      <span id="searchCount"></span>
+    </span>
+  </nav>
+</header>
+
+<main>
+  <section class="tab active" id="tab-today"></section>
+  <section class="tab" id="tab-geo"></section>
+  <section class="tab" id="tab-econ"></section>
+  <section class="tab" id="tab-health"></section>
+  <section class="tab" id="tab-michigan"></section>
+  <section class="tab" id="tab-education"></section>
+  <section class="tab" id="tab-mind"></section>
+  <section class="tab" id="tab-pulse"></section>
+  <section class="tab" id="tab-culture"></section>
+  <section class="tab" id="tab-about"></section>
+</main>
+
+<footer>
+  Rebuilt each morning &middot; pulls live headlines every time it opens &middot; labels describe vantage point, not credibility.
+</footer>
+
+<script>
+"use strict";
+
+/* ---------------- Perspective labels (fixed categorical assignment) ---------------- */
+const PERS = {
+  wire:   { label: "Wire / mainstream", v: "--p-wire" },
+  realist:{ label: "Realist / heterodox", v: "--p-realist" },
+  west:   { label: "Western analysis", v: "--p-west" },
+  acad:   { label: "Academic", v: "--p-acad" },
+  ruind:  { label: "RU independent (exile)", v: "--p-ruind" },
+  rust:   { label: "RU state", v: "--p-rust" },
+  rudom:  { label: "RU domestic press", v: "--p-rudom" },
+  none:   { label: "", v: "--p-none" }
+};
+
+/* ---------------- Feed registry ---------------- */
+const FEEDS = [
+  // Wires
+  { id:"bbc", n:"BBC World", u:"https://feeds.bbci.co.uk/news/world/rss.xml", p:"wire", home:"https://www.bbc.com/news/world" },
+  { id:"guardian", n:"Guardian World", u:"https://www.theguardian.com/world/rss", p:"wire", home:"https://www.theguardian.com/world" },
+  { id:"npr-world", n:"NPR World", u:"https://feeds.npr.org/1004/rss.xml", p:"wire", home:"https://www.npr.org/sections/world/" },
+  { id:"dw", n:"DW World", u:"https://rss.dw.com/rdf/rss-en-world", p:"wire", home:"https://www.dw.com" },
+  { id:"aj", n:"Al Jazeera", u:"https://www.aljazeera.com/xml/rss/all.xml", p:"wire", home:"https://www.aljazeera.com" },
+  { id:"ap", n:"AP News", u:"https://news.google.com/rss/search?q=site:apnews.com+when:1d&hl=en-US&gl=US&ceid=US:en", p:"wire", gn:true, home:"https://apnews.com" },
+  { id:"reuters", n:"Reuters", u:"https://news.google.com/rss/search?q=site:reuters.com+when:1d&hl=en-US&gl=US&ceid=US:en", p:"wire", gn:true, home:"https://www.reuters.com" },
+  // Western analysis / think tanks
+  { id:"wotr", n:"War on the Rocks", u:"https://warontherocks.com/feed/", p:"west", home:"https://warontherocks.com" },
+  { id:"fa", n:"Foreign Affairs", u:"https://news.google.com/rss/search?q=site:foreignaffairs.com+when:7d&hl=en-US&gl=US&ceid=US:en", p:"west", gn:true, home:"https://www.foreignaffairs.com" },
+  { id:"isw", n:"Inst. for the Study of War", u:"https://news.google.com/rss/search?q=site:understandingwar.org+when:3d&hl=en-US&gl=US&ceid=US:en", p:"west", gn:true, home:"https://www.understandingwar.org" },
+  { id:"icg", n:"Crisis Group", u:"https://www.crisisgroup.org/rss", p:"west", home:"https://www.crisisgroup.org" },
+  { id:"politika", n:"Carnegie Politika", u:"https://news.google.com/rss/search?q=site:carnegieendowment.org+politika&hl=en-US&gl=US&ceid=US:en", p:"acad", gn:true, home:"https://carnegieendowment.org/russia-eurasia/politika" },
+  { id:"rusmatters", n:"Russia Matters (Harvard)", u:"https://news.google.com/rss/search?q=site:russiamatters.org+when:14d&hl=en-US&gl=US&ceid=US:en", p:"acad", gn:true, home:"https://www.russiamatters.org" },
+  // Realist / heterodox (Sveta's core sources)
+  { id:"diesen", n:"Glenn Diesen — Substack", u:"https://glenndiesen.substack.com/feed", p:"realist", home:"https://glenndiesen.substack.com" },
+  { id:"diesen-yt", n:"Glenn Diesen — YouTube", u:"https://www.youtube.com/feeds/videos.xml?channel_id=UCZFCDIHTe9HGxtIuVDpBz7g", p:"realist", home:"https://www.youtube.com/channel/UCZFCDIHTe9HGxtIuVDpBz7g" },
+  { id:"mearsheimer", n:"John Mearsheimer", u:"https://mearsheimer.substack.com/feed", p:"realist", home:"https://mearsheimer.substack.com" },
+  { id:"sonar21", n:"Larry Johnson — Sonar21", u:"https://sonar21.com/feed/", p:"realist", home:"https://sonar21.com" },
+  { id:"sachs", n:"Jeffrey Sachs", u:"https://www.jeffsachs.org/newspaper-articles?format=rss", p:"realist", home:"https://www.jeffsachs.org" },
+  { id:"macgregor-yt", n:"Col. Macgregor — Our Country Our Choice", u:"https://www.youtube.com/feeds/videos.xml?channel_id=UCQdmoE7duRdFgonAf9_xUvQ", p:"realist", home:"https://www.youtube.com/channel/UCQdmoE7duRdFgonAf9_xUvQ" },
+  { id:"judging-yt", n:"Judging Freedom (Napolitano)", u:"https://www.youtube.com/feeds/videos.xml?channel_id=UCDkEYb-TXJVWLvOokshtlsw", p:"realist", home:"https://www.youtube.com/channel/UCDkEYb-TXJVWLvOokshtlsw" },
+  { id:"rs", n:"Responsible Statecraft", u:"https://responsiblestatecraft.org/feed/", p:"realist", home:"https://responsiblestatecraft.org" },
+  // Russian outlets
+  { id:"meduza-en", n:"Meduza (EN)", u:"https://meduza.io/rss/en/all", p:"ruind", home:"https://meduza.io/en" },
+  { id:"meduza-ru", n:"Медуза (RU)", u:"https://meduza.io/rss/all", p:"ruind", home:"https://meduza.io" },
+  { id:"mt", n:"The Moscow Times", u:"https://www.themoscowtimes.com/rss/news", p:"ruind", home:"https://www.themoscowtimes.com" },
+  { id:"tass", n:"TASS (EN)", u:"https://tass.com/rss/v2.xml", p:"rust", home:"https://tass.com" },
+  { id:"kommersant", n:"Коммерсантъ", u:"https://www.kommersant.ru/RSS/news.xml", p:"rudom", home:"https://www.kommersant.ru" },
+  { id:"rbc", n:"РБК", u:"https://rssexport.rbc.ru/rbcnews/news/30/full.rss", p:"rudom", home:"https://www.rbc.ru" },
+  // Iran / Middle East
+  { id:"iran-roll", n:"Iran — headline roll", u:"https://news.google.com/rss/search?q=Iran+when:1d&hl=en-US&gl=US&ceid=US:en", p:"wire", gn:true, home:"https://news.google.com/search?q=iran" },
+  { id:"amwaj", n:"Amwaj.media", u:"https://news.google.com/rss/search?q=site:amwaj.media+when:7d&hl=en-US&gl=US&ceid=US:en", p:"west", gn:true, home:"https://amwaj.media" },
+  // Economy & markets
+  { id:"ft", n:"Financial Times", u:"https://www.ft.com/rss/home", p:"none", home:"https://www.ft.com" },
+  { id:"econ-fe", n:"Economist — Finance &amp; economics", u:"https://www.economist.com/finance-and-economics/rss.xml", p:"none", home:"https://www.economist.com/finance-and-economics" },
+  { id:"bloomberg", n:"Bloomberg", u:"https://news.google.com/rss/search?q=site:bloomberg.com+when:1d&hl=en-US&gl=US&ceid=US:en", p:"none", gn:true, home:"https://www.bloomberg.com" },
+  { id:"cr", n:"Calculated Risk", u:"https://calculatedrisk.substack.com/feed", p:"none", home:"https://calculatedrisk.substack.com" },
+  { id:"mr", n:"Marginal Revolution", u:"https://marginalrevolution.com/feed", p:"acad", home:"https://marginalrevolution.com" },
+  { id:"conversable", n:"Conversable Economist", u:"https://conversableeconomist.com/feed/", p:"acad", home:"https://conversableeconomist.com" },
+  { id:"voxeu", n:"VoxEU / CEPR", u:"https://cepr.org/rss/vox-content", p:"acad", home:"https://cepr.org/voxeu" },
+  { id:"imf", n:"IMF Blog", u:"https://news.google.com/rss/search?q=site:imf.org+when:7d&hl=en-US&gl=US&ceid=US:en", p:"acad", gn:true, home:"https://www.imf.org/en/Blogs" },
+  { id:"nber", n:"NBER Working Papers", u:"https://back.nber.org/rss/new.xml", p:"acad", home:"https://www.nber.org/papers" },
+  // Health & policy
+  { id:"kff", n:"KFF Health News", u:"https://kffhealthnews.org/feed/", p:"none", home:"https://kffhealthnews.org" },
+  { id:"stat", n:"STAT News", u:"https://www.statnews.com/feed/", p:"none", home:"https://www.statnews.com" },
+  { id:"hcd", n:"Healthcare Dive", u:"https://www.healthcaredive.com/feeds/news/", p:"none", home:"https://www.healthcaredive.com" },
+  { id:"tie", n:"The Incidental Economist", u:"https://theincidentaleconomist.com/wordpress/feed/", p:"acad", home:"https://theincidentaleconomist.com" },
+  { id:"ha", n:"Health Affairs", u:"https://news.google.com/rss/search?q=site:healthaffairs.org+when:7d&hl=en-US&gl=US&ceid=US:en", p:"acad", gn:true, home:"https://www.healthaffairs.org" },
+  { id:"npr-pol", n:"NPR Politics", u:"https://feeds.npr.org/1014/rss.xml", p:"wire", home:"https://www.npr.org/sections/politics/" },
+  { id:"brookings", n:"Brookings", u:"https://news.google.com/rss/search?q=site:brookings.edu+when:7d&hl=en-US&gl=US&ceid=US:en", p:"west", gn:true, home:"https://www.brookings.edu" },
+  // Michigan
+  { id:"bridge", n:"Bridge Michigan", u:"https://bridgemi.com/feed/", p:"none", home:"https://bridgemi.com" },
+  { id:"freep", n:"Detroit Free Press", u:"https://news.google.com/rss/search?q=site:freep.com+when:1d&hl=en-US&gl=US&ceid=US:en", p:"none", gn:true, home:"https://www.freep.com" },
+  { id:"mipub", n:"Michigan Public", u:"https://www.michiganpublic.org/index.rss", p:"none", home:"https://www.michiganpublic.org" },
+  { id:"outlier", n:"Outlier Media (Detroit)", u:"https://outliermedia.org/feed/", p:"none", home:"https://outliermedia.org" },
+  { id:"mlive", n:"MLive — Ann Arbor", u:"https://news.google.com/rss/search?q=site:mlive.com+ann+arbor+when:2d&hl=en-US&gl=US&ceid=US:en", p:"none", gn:true, home:"https://www.mlive.com/ann-arbor/" },
+  { id:"midaily", n:"The Michigan Daily", u:"https://www.michigandaily.com/feed/", p:"none", home:"https://www.michigandaily.com" },
+  // Higher ed
+  { id:"ihe", n:"Inside Higher Ed", u:"https://www.insidehighered.com/rss.xml", p:"none", home:"https://www.insidehighered.com" },
+  { id:"chronicle", n:"Chronicle of Higher Ed", u:"https://news.google.com/rss/search?q=site:chronicle.com+when:3d&hl=en-US&gl=US&ceid=US:en", p:"none", gn:true, home:"https://www.chronicle.com" },
+  { id:"hech", n:"Hechinger Report", u:"https://hechingerreport.org/feed/", p:"none", home:"https://hechingerreport.org" },
+  // Culture & style
+  { id:"aeon", n:"Aeon", u:"https://aeon.co/feed.rss", p:"none", home:"https://aeon.co" },
+  { id:"atlantic", n:"The Atlantic", u:"https://www.theatlantic.com/feed/all/", p:"none", home:"https://www.theatlantic.com" },
+  { id:"nyc", n:"New Yorker — Culture", u:"https://www.newyorker.com/feed/culture", p:"none", home:"https://www.newyorker.com/culture" },
+  { id:"nyrb", n:"NY Review of Books", u:"https://www.nybooks.com/feed/", p:"none", home:"https://www.nybooks.com" },
+  { id:"gc", n:"Guardian Culture", u:"https://www.theguardian.com/culture/rss", p:"none", home:"https://www.theguardian.com/culture" },
+  { id:"ftla", n:"FT Life &amp; Arts", u:"https://www.ft.com/life-arts?format=rss", p:"none", home:"https://www.ft.com/life-arts" },
+  { id:"artnews", n:"ARTnews", u:"https://www.artnews.com/feed/", p:"none", home:"https://www.artnews.com" },
+  { id:"vogue", n:"Vogue", u:"https://www.vogue.com/feed/rss", p:"none", home:"https://www.vogue.com" },
+  { id:"variety", n:"Variety", u:"https://variety.com/feed/", p:"none", home:"https://variety.com" },
+  { id:"bof", n:"Business of Fashion", u:"https://news.google.com/rss/search?q=site:businessoffashion.com+when:7d&hl=en-US&gl=US&ceid=US:en", p:"none", gn:true, home:"https://www.businessoffashion.com" },
+  // Student pulse (youth culture)
+  { id:"billboard", n:"Billboard", u:"https://www.billboard.com/feed/", p:"none", home:"https://www.billboard.com" },
+  { id:"pitchfork", n:"Pitchfork", u:"https://pitchfork.com/rss/news/", p:"none", home:"https://pitchfork.com" },
+  { id:"rollingstone", n:"Rolling Stone", u:"https://www.rollingstone.com/feed/", p:"none", home:"https://www.rollingstone.com" },
+  { id:"polygon", n:"Polygon", u:"https://www.polygon.com/rss/index.xml", p:"none", home:"https://www.polygon.com" },
+  { id:"avclub", n:"The A.V. Club", u:"https://www.avclub.com/rss", p:"none", home:"https://www.avclub.com" },
+  { id:"verge", n:"The Verge", u:"https://www.theverge.com/rss/index.xml", p:"none", home:"https://www.theverge.com" },
+  { id:"teenvogue", n:"Teen Vogue", u:"https://www.teenvogue.com/feed/rss", p:"none", home:"https://www.teenvogue.com" },
+  { id:"kym", n:"Know Your Meme", u:"https://knowyourmeme.com/newsfeed.rss", p:"none", home:"https://knowyourmeme.com" },
+  { id:"bookriot", n:"Book Riot", u:"https://bookriot.com/feed/", p:"none", home:"https://bookriot.com" },
+  { id:"ypulse", n:"YPulse (Gen Z research)", u:"https://news.google.com/rss/search?q=site:ypulse.com+when:7d&hl=en-US&gl=US&ceid=US:en", p:"none", gn:true, home:"https://www.ypulse.com" },
+  { id:"dazed", n:"Dazed", u:"https://www.dazeddigital.com/rss", p:"none", home:"https://www.dazeddigital.com" },
+  { id:"letterboxd", n:"Letterboxd Journal", u:"https://letterboxd.com/journal/rss/", p:"none", home:"https://letterboxd.com/journal/" },
+  // Mind & Cosmos — contemplative
+  { id:"lionsroar", n:"Lion's Roar", u:"https://www.lionsroar.com/feed/", p:"none", home:"https://www.lionsroar.com" },
+  { id:"tricycle", n:"Tricycle", u:"https://tricycle.org/feed/", p:"none", home:"https://tricycle.org" },
+  { id:"buddhistdoor", n:"Buddhistdoor Global", u:"https://www.buddhistdoor.net/rss/feed/news", p:"none", home:"https://www.buddhistdoor.net" },
+  { id:"essentia", n:"Essentia Foundation", u:"https://essentiafoundation.org/feed/", p:"none", home:"https://www.essentiafoundation.org" },
+  { id:"nautilus", n:"Nautilus", u:"https://nautil.us/feed/", p:"none", home:"https://nautil.us" },
+  { id:"ctt-yt", n:"Closer to Truth (YouTube)", u:"https://www.youtube.com/feeds/videos.xml?channel_id=UCl9StMQ79LtEvlrskzjoYbQ", p:"none", home:"https://www.youtube.com/channel/UCl9StMQ79LtEvlrskzjoYbQ" },
+  // Mind & Cosmos — quantum
+  { id:"quanta", n:"Quanta Magazine", u:"https://www.quantamagazine.org/feed/", p:"acad", home:"https://www.quantamagazine.org" },
+  { id:"physworld", n:"Physics World", u:"https://physicsworld.com/feed/", p:"none", home:"https://physicsworld.com" },
+  { id:"arxivqp", n:"arXiv quant-ph — new papers", u:"https://rss.arxiv.org/rss/quant-ph", p:"acad", home:"https://arxiv.org/list/quant-ph/new" },
+  { id:"tqi", n:"The Quantum Insider", u:"https://thequantuminsider.com/feed/", p:"none", home:"https://thequantuminsider.com" },
+  // Mind & Cosmos — psychedelic science
+  { id:"psyalpha", n:"Psychedelic Alpha", u:"https://psychedelicalpha.com/rss", p:"none", home:"https://psychedelicalpha.com" },
+  { id:"psypost-psy", n:"PsyPost — Psychedelics", u:"https://www.psypost.org/psychedelic-drugs/feed/", p:"none", home:"https://www.psypost.org/psychedelic-drugs/" },
+  { id:"maps", n:"MAPS", u:"https://maps.org/feed/", p:"none", home:"https://maps.org" },
+  { id:"psyroll", n:"Psychedelic research — news roll", u:"https://news.google.com/rss/search?q=psilocybin+OR+%22psychedelic+research%22+OR+DMT+when:7d&hl=en-US&gl=US&ceid=US:en", p:"none", gn:true, home:"https://news.google.com/search?q=psychedelic%20research" },
+  // Teaching & pedagogy
+  { id:"facfocus", n:"Faculty Focus", u:"https://www.facultyfocus.com/feed/", p:"none", home:"https://www.facultyfocus.com" },
+  { id:"tihe", n:"Teaching in Higher Ed", u:"https://teachinginhighered.com/feed/", p:"none", home:"https://teachinginhighered.com" },
+  { id:"thecampus", n:"THE Campus (teaching resources)", u:"https://news.google.com/rss/search?q=site:timeshighereducation.com+campus+when:14d&hl=en-US&gl=US&ceid=US:en", p:"none", gn:true, home:"https://www.timeshighereducation.com/campus" },
+  // Auteur cinema
+  { id:"criterion", n:"The Criterion Current", u:"https://www.criterion.com/feeds/current", p:"none", home:"https://www.criterion.com/current" },
+  { id:"mubi", n:"MUBI Notebook", u:"https://mubi.com/notebook/posts.atom", p:"none", home:"https://mubi.com/notebook" },
+  { id:"indiewire", n:"IndieWire", u:"https://www.indiewire.com/feed/", p:"none", home:"https://www.indiewire.com" },
+  { id:"senses", n:"Senses of Cinema", u:"https://www.sensesofcinema.com/feed/", p:"acad", home:"https://www.sensesofcinema.com" },
+  { id:"auteur-roll", n:"Lynch · Noé · von Trier · Refn — news roll", u:"https://news.google.com/rss/search?q=%22David+Lynch%22+OR+%22Gaspar+Noe%22+OR+%22Lars+von+Trier%22+OR+%22Winding+Refn%22+when:30d&hl=en-US&gl=US&ceid=US:en", p:"none", gn:true, home:"https://news.google.com" }
+];
+const FEED_BY_ID = Object.fromEntries(FEEDS.map(f => [f.id, f]));
+
+/* Topic filters */
+const RU_KW = /russia|ukrain|putin|kremlin|moscow|kyiv|kiev|zelensk|donbas|donetsk|luhansk|crimea|sevastopol|novorossiysk|lavrov|medvedev|ruble|rouble|belarus|black sea|nato/i;
+const IRAN_KW = /iran|tehran|hezbollah|hizbullah|lebanon|beirut|israel|gaza|persian gulf|hormuz|iaea|khamenei|araghchi|houthi|red sea|nuclear deal/i;
+const MIND_KW = /conscious|mind|qualia|panpsych|idealis|meditat|buddhis|dzogchen|tibet|vedanta|nondual|advaita|contemplat|psychedel|quantum|mystic|awareness|percept|dream|self\b/i;
+const AUTEUR_KW = /david lynch|gaspar no[eé]|von trier|winding refn|\brefn\b|twin peaks|dogme/i;
+
+/* ---------------- Baked snapshot (rewritten at each scheduled rebuild) ---------------- */
+const BAKED = {
+  builtAt: "2026-08-13T14:15:00-04:00",
+  builtLabel: "Aug 13, 2026, 2:15 PM",
+  brief: [
+    { h: "World & geopolitics", items: [
+      { t: "Ukraine struck Novorossiysk overnight Aug 12 — three killed and major grain terminals hit; a third big Black Sea terminal has now halted exports, and Sevastopol lost power after follow-on strikes.",
+        s: [["BBC","https://www.bbc.co.uk/news/articles/c5y49xp2wrno"],["Meduza","https://meduza.io/en/news/2026/08/13/third-major-russian-black-sea-grain-terminal-halts-operations-after-ukrainian-attack"],["TASS","https://tass.com/politics/2172135"]] },
+      { t: "Diplomacy is stalled: the latest Russia–Ukraine round ended with no ceasefire or summit. ISW reads Moscow as preparing an energy-strike campaign and a Donetsk push; Diesen argues the escalatory driver is NATO's own posture.",
+        s: [["ISW","https://www.understandingwar.org"],["Diesen","https://glenndiesen.substack.com/p/nato-taunting-putin"]] },
+      { t: "The war's home-front costs in Russia: Wildberries and its sellers put drone-attack losses in the hundreds of billions of rubles, electronics retailers are asking for state support, and a St. Petersburg professor was detained over ~$40 in Navalny-fund donations.",
+        s: [["RBC","https://www.rbc.ru/technology_and_media/13/08/2026/6a7c84429a7947809273d40f"],["Meduza","https://meduza.io/en/news/2026/08/13/wildberries-and-sellers-combined-losses-from-ukrainian-drone-attacks-estimated-at-hundreds-of-billions-of-rubles"],["Moscow Times","https://www.themoscowtimes.com/2026/08/12/st-petersburg-philosophy-professor-detained-over-40-extremist-navalny-donations-a93474"]] },
+      { t: "Iran: US and Iranian negotiators met under a US Gulf blockade as Trump threatens to “hit Iran very hard again” over Hezbollah; Amwaj reports the two sides “explicitly agree” on peace in Lebanon even as Israel strikes the south. Larry Johnson expects a declared victory with no nuclear deal.",
+        s: [["Al Jazeera","https://www.aljazeera.com/news/liveblog/2026/8/12/iran-war-live-us-fires-missiles-at-cargo-ship-violating-iran-blockade"],["Amwaj","https://amwaj.media/en/media-monitor/inside-story-iran-us-explicitly-agree-on-peace-in-lebanon-but-will-israel-end-war"],["Sonar21","https://glenndiesen.substack.com/p/larry-johnson-will-trump-declare"]] }
+    ]},
+    { h: "Economy & markets", items: [
+      { t: "July CPI (+0.1% m/m, 3.4% y/y) came in with core inflation at its slowest pace since 2021, and July PPI decelerated more than forecast as the war-driven energy shock fades — traders pared back rate-hike bets.",
+        s: [["Bloomberg","https://www.bloomberg.com/news/articles/2026-08-13/us-producer-price-growth-decelerates-by-more-than-forecast"],["NPR","https://www.npr.org/2026/08/13/g-s1-138578/up-first-newsletter-inflation-colombia-earthquake-ice-gloves-migrant-children-karolina-leavitt"]] }
+    ]},
+    { h: "Health & policy", items: [
+      { t: "Hospitals are increasingly demanding pre-payment of deductibles before scheduled care, shifting liquidity risk onto patients; California's $30 CalRx generic insulin is off to a slow start against incumbent PBM contracts.",
+        s: [["KFF","https://kffhealthnews.org/health-care-costs/hospital-prepayment-requirements-upfront-patient-insurance-deductible/"],["STAT","https://www.statnews.com/2026/08/13/newsom-california-generic-insulin-calrx-availability-slow-to-reach-patients/"]] },
+      { t: "Medicaid front: the administration cut funding for youth gender-affirming care, while Brookings researchers challenge the assumptions behind the CMS work-requirements rule.",
+        s: [["Healthcare Dive","https://www.healthcaredive.com/news/cms-medicaid-work-requirements-rule-slammed-brookings-analysis/827481/"]] }
+    ]},
+    { h: "Campus & culture", items: [
+      { t: "A federal judge dismissed DOJ's antisemitism lawsuit against Harvard for lack of evidence; in Lansing, lawmakers are pushing back on Michigan universities' closed-door decision-making.",
+        s: [["Inside Higher Ed","https://www.insidehighered.com/news/government/courts/2026/08/13/trumps-antisemitism-lawsuit-against-harvard-dismissed"],["Bridge","https://bridgemi.com/talent-education/michigan-universities-make-secret-decisions-some-lawmakers-want-change/"]] },
+      { t: "Sotheby's landed the $450M Blaquier collection as an “estate rush” reshapes the art market; millions gathered for Spain's first total solar eclipse in over a century.",
+        s: [["ARTnews","https://www.artnews.com/art-news/market/great-estate-rush-that-is-reshaping-art-market-1234794331/"],["NPR","https://www.npr.org/2026/08/13/g-s1-138556/spain-solar-eclipse"]] }
+    ]}
+  ],
+  hooks: [
+    { story: "July CPI rose 0.1% m/m with goods prices still elevated as tariff costs keep passing through to consumers.",
+      src: ["Brookings tariff tracker","https://www.brookings.edu/articles/tracking-trumps-tariffs-and-other-trade-actions/"],
+      concept: "Tax incidence & elasticity — who actually bears a tariff",
+      q: "Using supply and demand elasticities, who ultimately pays a tariff — foreign producers, importers, or consumers? What CPI patterns would help you tell?" },
+    { story: "California's state-sponsored $30 CalRx generic insulin is off to a slow start despite undercutting incumbent brands.",
+      src: ["STAT","https://www.statnews.com/2026/08/13/newsom-california-generic-insulin-calrx-availability-slow-to-reach-patients/"],
+      concept: "Market power, entry barriers & switching costs",
+      q: "If a cheaper entrant can't win share, what frictions — PBM rebates, formulary placement, switching costs — are blunting price competition? Can a public option fix them?" },
+    { story: "Hospitals are increasingly demanding prepayment of deductibles before scheduled procedures.",
+      src: ["KFF Health News","https://kffhealthnews.org/health-care-costs/hospital-prepayment-requirements-upfront-patient-insurance-deductible/"],
+      concept: "Price elasticity, cost-sharing & liquidity constraints",
+      q: "When payment moves upfront, which patients and which care are most likely forgone — and what does that reveal about elasticity of demand for elective vs. urgent care?" }
+  ],
+  pulse: [
+    { cat: "Listening", t: "“Choosin' Texas” — Ella Langley",
+      why: "The country breakout's single has now spent 17 straight weeks at No. 1 on the Hot 100 — the fourth-longest run in chart history — flagship of a Gen Z country boom so strong that country recently held the entire Top 5 for the first time ever. Students stream it, duet it on TikTok, and argue about whether the run should end.",
+      rec: "Play it once (3 minutes), then ask students whether 17 weeks at No. 1 means it's genuinely great or just algorithmically unavoidable — everyone has a take.",
+      src: ["Variety","https://variety.com/2026/music/news/ella-langley-choosin-texas-17th-week-hot-100-1236831734/"] },
+    { cat: "Watching", t: "Spider-Man: Brand New Day",
+      why: "Tom Holland's return opened July 31 and just posted a $144M second weekend ($654M domestic in under two weeks); under-25s are the demographic studios credit with reviving theatrical moviegoing. The surrounding meme economy — secret-villain spoiler discourse, a theater's viral “Spoderman” poster stunt — is as big as the film.",
+      rec: "See it in a crowded weekend showing, or simply ask students if they've managed to avoid spoilers about the secret villain — spoiler etiquette is the live conversation.",
+      src: ["The Numbers","https://www.the-numbers.com/weekend-box-office-chart"] },
+    { cat: "Reading", t: "Alchemised — SenLinYu",
+      why: "A Harry Potter “Dramione” fanfic reworked into an original dark-romantasy novel that became a blockbuster bestseller and anchors TikTok's official 2026 BookTok summer reading list (BookTok now counts 80M+ posts). Its free-fanfic-to-hardcover path matches how this cohort thinks fandom and authorship should work.",
+      rec: "Skim the book's origin story, then ask students whether they read it free online as “Manacled” before buying it — the answer doubles as a pricing lesson.",
+      src: ["TikTok Newsroom","https://newsroom.tiktok.com/the-booktok-communitys-2026-summer-reading-list"] },
+    { cat: "Online", t: "Haymaker Valley (TikTok lore cycle)",
+      why: "This week's absurdist collaborative fiction: creators post deadpan warnings never to visit “Haymaker Valley,” a fictional place where dogs throw haymaker punches at tourists, then extend the canon with fake travel vlogs and edit templates. The appeal is worldbuilding-as-inside-joke — you participate by adding to the lore, not just watching.",
+      rec: "Read the Know Your Meme entry and browse the tag for five minutes; casually knowing what it is (without forcing a reference) lands better than trying to use it.",
+      src: ["Know Your Meme","https://knowyourmeme.com/memes/haymaker-valley"] },
+    { cat: "Playing", t: "Madden NFL 27 (out today)",
+      why: "EA's Madden NFL 27 launches straight into the back-to-school window, when dorm couch sessions and online franchise leagues with roommates spike. Sports titles remain the most social gaming layer on campuses, alongside lingering summer obsession Forza Horizon 6.",
+      rec: "Ask students whether they bought Madden 27 or are still on College Football, and who runs their franchise league — team loyalty and $70-game grumbling are instant openers.",
+      src: ["GameSpot","https://www.gamespot.com/articles/the-biggest-new-game-releases-of-august-2026/"] },
+    { cat: "Watching", t: "Camp Rock 3 (premieres tonight)",
+      why: "Disney's revival of the 2008 Jonas Brothers/Demi Lovato franchise premieres Aug 13 — a full-blown nostalgia event for students who grew up on Disney Channel reruns; the group-watch and reaction-meme cycle matters as much as the movie itself.",
+      rec: "Admit you remember the original Camp Rock era and ask whether the sequel delivered — low-stakes, self-aware nostalgia reads as charming rather than try-hard.",
+      src: ["Disney+ Press","https://press.disneyplus.com/news/camp-rock-3-premieres-august-13-disney-channel"] }
+  ],
+  classnote: { t: "My Chemical Romance's Black Parade 20th-anniversary stadium tour (US legs through September) is a pricing lab your students are personally in: Ticketmaster dynamic pricing on the primary market versus last-minute price drops on resale platforms sets up demand elasticity, price discrimination, and arbitrage in one relatable example.",
+    src: ["Rolling Stone","https://www.rollingstone.com/product-recommendations/tickets/my-chemical-romance-black-parade-tour-tickets-1235607594/"] },
+  items: {
+    "bbc": [
+      { t: "Ebola outbreak on track to be deadliest ever, WHO chief says", u: "https://www.bbc.co.uk/news/articles/cgk4pex4mn8o", d: "2026-08-13" },
+      { t: "Major Russian grain export terminals hit in Ukraine Black Sea port attack", u: "https://www.bbc.co.uk/news/articles/c5y49xp2wrno", d: "2026-08-12" },
+      { t: "Travis Kelce shares first details from his wedding to Taylor Swift", u: "https://www.bbc.co.uk/news/articles/cx2r179e232o", d: "2026-08-13" }
+    ],
+    "npr-world": [
+      { t: "Inflation eased slightly in July. And, ICE plans to give officers electric shock gloves", u: "https://www.npr.org/2026/08/13/g-s1-138578/up-first-newsletter-inflation-colombia-earthquake-ice-gloves-migrant-children-karolina-leavitt", d: "2026-08-13" },
+      { t: "U.S. ambassador calls settler siege of Palestinian homes a 'horrific act of terror'", u: "https://www.npr.org/2026/08/13/g-s1-138574/us-west-bank-settlers", d: "2026-08-13" },
+      { t: "Millions crowd cities to see Spain's first total solar eclipse in over a century", u: "https://www.npr.org/2026/08/13/g-s1-138556/spain-solar-eclipse", d: "2026-08-13" }
+    ],
+    "aj": [
+      { t: "Three Palestinian families trapped as Israeli settlers lay siege", u: "https://www.aljazeera.com/news/2026/8/13/israeli-settlers-besiege-three-palestinian-families-in-occupied-west-bank", d: "2026-08-13" },
+      { t: "Ukraine hits grain terminals at Russia's Novorossiysk port, killing three", u: "https://www.aljazeera.com/news/2026/8/12/three-killed-in-overnight-attacks-on-russian-ukrainian-port", d: "2026-08-12" }
+    ],
+    "wotr": [
+      { t: "2026 and All That: Another Benchmark Year in Royal Navy Decline", u: "https://warontherocks.com/2026-and-all-that-another-benchmark-year-in-royal-navy-decline/", d: "2026-08-13" },
+      { t: "Putting Armageddon on Autopilot: How AI Could Make Nuclear Threats More Effective", u: "https://warontherocks.com/putting-armageddon-on-autopilot-how-artificial-intelligence-could-make-nuclear-threats-more-effective/", d: "2026-08-11" }
+    ],
+    "rs": [
+      { t: "Trump wants to talk to Hezbollah. Will they pick up the phone?", u: "https://responsiblestatecraft.org/trump-hezbollah/", d: "2026-08-13" },
+      { t: "Machado is hiring DC lobbyists for access to Venezuela's future", u: "https://responsiblestatecraft.org/machado-future-venezuela/", d: "2026-08-13" },
+      { t: "US looking for 'new creative' ways to fight a war it's already 'won'", u: "https://responsiblestatecraft.org/us-military-procurement-problems/", d: "2026-08-13" }
+    ],
+    "fa": [
+      { t: "Why Russia Is Watching Iran Burn", u: "https://www.foreignaffairs.com/russia/why-russia-watching-iran-burn", d: "2026-08-10" },
+      { t: "The War in Iran Could Become Like the War in Ukraine", u: "https://www.foreignaffairs.com/iran/war-iran-could-become-war-ukraine", d: "2026-08-09" },
+      { t: "A Plan for Peace Through Strength in Ukraine", u: "https://www.foreignaffairs.com/russia/plan-peace-through-strength-ukraine", d: "2026-08-08" }
+    ],
+    "politika": [
+      { t: "Russia Is Exporting Its Fuel Crisis to Central Asia", u: "https://carnegieendowment.org/russia-eurasia/politika/2026/07/central-asia-fuel-crisis", d: "2026-07-30" },
+      { t: "What Do the Hacked Messages of 'Putin's Goddaughter' Ksenia Sobchak Reveal About Russian Politics?", u: "https://carnegieendowment.org/russia-eurasia/politika/2026/07/russia-sobchak-leaks-reaction", d: "2026-07-28" },
+      { t: "Russia Is Not Even a Contender in the Global AI Race", u: "https://carnegieendowment.org/russia-eurasia/politika/2026/07/russia-ai-race-spot", d: "2026-07-25" }
+    ],
+    "rusmatters": [
+      { t: "Russia in Review, July 31–Aug. 7, 2026", u: "https://www.russiamatters.org/news/russia-review/russia-review-july-31-aug-7-2026", d: "2026-08-07" }
+    ],
+    "icg": [
+      { t: "War, Politics and Chauvinism in Russia and Europe", u: "https://www.crisisgroup.org/pod/europe/russia/war-politics-and-chauvinism-russia-and-europe", d: "2026-07-30" },
+      { t: "Syria's new parliament can build institutions and trust", u: "https://www.crisisgroup.org/opd/middle-east-north-africa/syria/syrias-new-parliament-can-build-institutions-and-trust", d: "2026-07-27" }
+    ],
+    "diesen": [
+      { t: "Alastair Crooke: Iran & Russia Give Up on Diplomacy & Go on the Offensive", u: "https://glenndiesen.substack.com/p/alastair-crooke-iran-and-russia-give", d: "2026-08-13" },
+      { t: "NATO Taunting Putin", u: "https://glenndiesen.substack.com/p/nato-taunting-putin", d: "2026-08-13" },
+      { t: "Larry Johnson: Will Trump Declare Victory Against Iran & Walk Away Without a Nuclear Deal?", u: "https://glenndiesen.substack.com/p/larry-johnson-will-trump-declare", d: "2026-08-12" }
+    ],
+    "mearsheimer": [
+      { t: "Israel's Bleak Future", u: "https://mearsheimer.substack.com/p/israels-bleak-future", d: "2026-08-13" },
+      { t: "Wither Away the Iran Deal?", u: "https://mearsheimer.substack.com/p/wither-away-the-iran-deal", d: "2026-06-22" },
+      { t: "Trump Had No Choice", u: "https://mearsheimer.substack.com/p/trump-had-no-choice", d: "2026-06-20" }
+    ],
+    "sonar21": [
+      { t: "The US Navy is in Crisis and Pete Hegseth Does Not Give Damn", u: "https://sonar21.com/the-us-navy-is-in-crisis-and-pete-hegseth-does-not-give-damn/", d: "2026-08-13" },
+      { t: "Trump Wants 2,000 More Patriot Interceptors a Year, But Xi Jinping Holds the Trump Cards", u: "https://sonar21.com/trump-wants-2000-more-patriot-interceptors-a-year-but-xi-jinping-holds-the-trump-cards/", d: "2026-08-11" },
+      { t: "Scott Bessent's Delusional Oil Pipe Dream to Defeat Iran", u: "https://sonar21.com/scott-bessents-delusional-oil-pipe-dream-to-defeat-iran/", d: "2026-08-10" }
+    ],
+    "sachs": [
+      { t: "Ukraine: America's Enduring Proxy War on Russia", u: "https://www.commondreams.org/opinion/us-proxy-war-in-ukraine", d: "2026-07-21" },
+      { t: "Postcard from Dunhuang", u: "https://www.jeffsachs.org/newspaper-articles/cz3yny9p7yjs64talzaawznzgwncbr", d: "2026-07-19" },
+      { t: "Postcard from Transoxania", u: "https://www.jeffsachs.org/newspaper-articles/cr9sf4j5getaaztxne5f58ttn95zaa", d: "2026-07-07" }
+    ],
+    "meduza-en": [
+      { t: "Poland detains Russian man suspected of plotting to murder a dual U.S.-Ukrainian citizen", u: "https://meduza.io/en/news/2026/08/13/poland-detains-russian-man-suspected-of-plotting-to-murder-a-dual-u-s-ukrainian-citizen", d: "2026-08-13" },
+      { t: "Third major Russian Black Sea grain terminal halts operations after Ukrainian attack", u: "https://meduza.io/en/news/2026/08/13/third-major-russian-black-sea-grain-terminal-halts-operations-after-ukrainian-attack", d: "2026-08-13" },
+      { t: "Wildberries and sellers' losses from Ukrainian drone attacks estimated at hundreds of billions of rubles", u: "https://meduza.io/en/news/2026/08/13/wildberries-and-sellers-combined-losses-from-ukrainian-drone-attacks-estimated-at-hundreds-of-billions-of-rubles", d: "2026-08-13" }
+    ],
+    "meduza-ru": [
+      { t: "Третий крупный зерновой терминал в Новороссийске остановил работу после атаки ВСУ", u: "https://meduza.io/news/2026/08/13/tretiy-krupnyy-zernovoy-terminal-v-novorossiyske-ostanovil-rabotu-posle-ataki-vsu", d: "2026-08-13" },
+      { t: "Покушение на военного в Севастополе: по неофициальным данным, убит перешедший к России командир подлодки", u: "https://meduza.io/feature/2026/08/13/pokushenie-na-voennogo-v-sevastopole-po-neofitsialnym-dannym-ubit-komandir-ukrainskoy-podlodki-kotoryy-pereshel-na-storonu-rossii-glavnoe", d: "2026-08-13" }
+    ],
+    "mt": [
+      { t: "Tyumen Region Imposes Mass Pig Culls Over Mystery Outbreak", u: "https://www.themoscowtimes.com/2026/08/12/tyumen-region-imposes-mass-pig-culls-over-mystery-outbreak-a93477", d: "2026-08-12" },
+      { t: "St. Petersburg Philosophy Professor Detained Over $40 'Extremist' Navalny Donations", u: "https://www.themoscowtimes.com/2026/08/12/st-petersburg-philosophy-professor-detained-over-40-extremist-navalny-donations-a93474", d: "2026-08-12" }
+    ],
+    "tass": [
+      { t: "Russia's security must be ensured along all of its borders — Putin", u: "https://tass.com/politics/2172161", d: "2026-08-13" },
+      { t: "Ukrainian attack leaves Sevastopol without electricity", u: "https://tass.com/politics/2172135", d: "2026-08-13" }
+    ],
+    "kommersant": [
+      { t: "Генконсульство: россиян не было на борту загоревшегося судна у берегов Турции", u: "https://www.kommersant.ru/doc/8879089", d: "2026-08-13" },
+      { t: "Командование ВС США объявило о создании группы ударных беспилотников", u: "https://www.kommersant.ru/doc/8879090", d: "2026-08-13" }
+    ],
+    "rbc": [
+      { t: "Засуха охватила почти 40% территории ЕС и ударила по европейским фермерам", u: "https://www.rbc.ru/rbcfreenews/6a7d5c189a7947b46052ab27", d: "2026-08-13" },
+      { t: "Что известно об атаках БПЛА на регионы России. Главное к 13 августа", u: "https://www.rbc.ru/politics/29/07/2026/6a6988759a7947c50b702977", d: "2026-08-13" },
+      { t: "Продавцы электроники предложили меры поддержки бизнеса после атак БПЛА", u: "https://www.rbc.ru/technology_and_media/13/08/2026/6a7c84429a7947809273d40f", d: "2026-08-13" }
+    ],
+    "iran-roll": [
+      { t: "Iran war updates: Mediators push US-Iran talks as Israel hits Lebanon, Gaza", u: "https://www.aljazeera.com/news/liveblog/2026/8/12/iran-war-live-us-fires-missiles-at-cargo-ship-violating-iran-blockade", d: "2026-08-12" },
+      { t: "U.S. and Iranian negotiators meet as Trump threatens to 'hit Iran very hard again' over Hezbollah", u: "https://www.cbsnews.com/live-updates/iran-us-war-talks-suspended-trump-mou-israel-lebanon-hezbollah-fighting/", d: "2026-08-12" },
+      { t: "Israeli defense officials rethinking all war fronts as IDF reportedly strikes southern Lebanon", u: "https://www.jpost.com/middle-east/iran-news/2026-08-12/live-updates-905257", d: "2026-08-12" }
+    ],
+    "amwaj": [
+      { t: "Deep Dive: Iran's economy of depletion", u: "https://amwaj.media/en/article/deep-dive-irans-economy-of-depletion", d: "2026-08-11" },
+      { t: "Inside story: Iran, US 'explicitly agree' on peace in Lebanon, but will Israel end war?", u: "https://amwaj.media/en/media-monitor/inside-story-iran-us-explicitly-agree-on-peace-in-lebanon-but-will-israel-end-war", d: "2026-08-12" },
+      { t: "Saudi-US nuclear deal sparks debate in Tehran as Iran's strategic patience tested", u: "https://amwaj.media/en/media-monitor/saudi-us-nuclear-deal-sparks-debate-in-tehran-as-irans-strategic-patience-tested", d: "2026-08-10" }
+    ],
+    "bloomberg": [
+      { t: "US Wholesale Inflation Cools as War-Driven Energy Shock Fades", u: "https://www.bloomberg.com/news/articles/2026-08-13/us-producer-price-growth-decelerates-by-more-than-forecast", d: "2026-08-13" },
+      { t: "Stock Market Today: Dow, S&P Live Updates for August 13", u: "https://www.bloomberg.com/news/articles/2026-08-12/stock-market-today-dow-s-p-live-updates", d: "2026-08-13" }
+    ],
+    "mr": [
+      { t: "My very interesting Conversation with Daron Acemoglu", u: "https://marginalrevolution.com/marginalrevolution/2026/08/my-very-interesting-conversation-with-daron-acemoglu.html", d: "2026-08-13" },
+      { t: "Mistakes in financial economics", u: "https://marginalrevolution.com/marginalrevolution/2026/08/mistakes-in-financial-economics.html", d: "2026-08-12" }
+    ],
+    "conversable": [
+      { t: "“To Write Well is to Think Clearly”: David McCullough", u: "https://conversableeconomist.com/2026/08/13/to-write-well-is-to-think-clearly-david-mccullough/", d: "2026-08-13" },
+      { t: "Did the Sewing Machine Reduce the Workload for Women?", u: "https://conversableeconomist.com/2026/08/12/did-the-sewing-machine-reduce-the-workload-for-women/", d: "2026-08-12" }
+    ],
+    "voxeu": [
+      { t: "Overcoming zero-sum games to sustain growth and globalisation", u: "https://cepr.org/voxeu/columns/overcoming-zero-sum-games-sustain-growth-and-globalisation", d: "2026-08-11" },
+      { t: "Beyond economic voting: Do voters hold incumbents to account for the country's happiness?", u: "https://cepr.org/voxeu/columns/beyond-economic-voting-do-voters-hold-incumbents-account-countrys-happiness", d: "2026-08-10" }
+    ],
+    "nber": [
+      { t: "Medical Innovation and Racial Health Disparities (WP 35210)", u: "https://www.nber.org/papers/w35210", d: "2026-08-10" }
+    ],
+    "cr": [
+      { t: "Part 1: Current State of the Housing Market; Overview for mid-August 2026", u: "https://calculatedrisk.substack.com/p/part-1-current-state-of-the-housing-55c", d: "2026-08-11" },
+      { t: "August ICE Mortgage Monitor: “Annual home price growth was 1.5% in mid-July”", u: "https://calculatedrisk.substack.com/p/august-ice-mortgage-monitor-annual", d: "2026-08-10" }
+    ],
+    "kff": [
+      { t: "Hospital Prepayment Requirements Add New Wrinkles to Patients' Financial Responsibility", u: "https://kffhealthnews.org/health-care-costs/hospital-prepayment-requirements-upfront-patient-insurance-deductible/", d: "2026-08-12" },
+      { t: "Hospitals Say They Found a Tool To Help Reduce Childbirth Risks: Wristbands", u: "https://kffhealthnews.org/health-industry/gave-birth-wristbands-bracelets-postpartum-pregnancy-maternal-mortality-north-carolina/", d: "2026-08-12" }
+    ],
+    "stat": [
+      { t: "Newsom promotes affordable insulin, but California's generic label is off to a slow start", u: "https://www.statnews.com/2026/08/13/newsom-california-generic-insulin-calrx-availability-slow-to-reach-patients/", d: "2026-08-13" },
+      { t: "How to disrupt the health misinformation business model", u: "https://www.statnews.com/2026/08/13/statin-misinformation-medicine-scams-online-regulation-fact-checks/", d: "2026-08-13" }
+    ],
+    "hcd": [
+      { t: "Brookings researchers slam assumptions in CMS work requirements rule", u: "https://www.healthcaredive.com/news/cms-medicaid-work-requirements-rule-slammed-brookings-analysis/827481/", d: "2026-08-12" },
+      { t: "Trump administration cuts Medicaid funding for youth gender-affirming care", u: "https://www.healthcaredive.com/news/trump-cuts-medicaid-funding-for-youth-gender-affirming-care/827683/", d: "2026-08-12" }
+    ],
+    "tie": [
+      { t: "Massachusetts Lawmakers Prioritize Health Policy", u: "https://theincidentaleconomist.com/wordpress/massachusetts-lawmakers-prioritize-health-policy/", d: "2026-08-12" }
+    ],
+    "ha": [
+      { t: "Hijacking The Chronic Disease Epidemic", u: "https://www.healthaffairs.org/content/forefront/hijacking-chronic-disease-epidemic", d: "2026-08-11" },
+      { t: "UnitedHealthcare Pays Optum Providers More Than Non-Optum Providers", u: "https://www.healthaffairs.org/doi/10.1377/hlthaff.2025.00155", d: "2026-08-10" }
+    ],
+    "npr-pol": [
+      { t: "Primary voters send mixed signals about what they want from the Democratic Party", u: "https://www.npr.org/2026/08/13/nx-s1-5929473/primary-voters-send-mixed-signals-about-what-they-want-from-the-democratic-party", d: "2026-08-13" },
+      { t: "These swing voters in Nevada say they are not dismissing socialist candidates", u: "https://www.npr.org/2026/08/13/nx-s1-5929406/nevada-economy-socialism-focus-groups", d: "2026-08-13" }
+    ],
+    "brookings": [
+      { t: "An update on Europe's Russia sanctions", u: "https://www.brookings.edu/articles/an-update-on-europes-russia-sanctions/", d: "2026-08-06" },
+      { t: "Tracking Trump's tariffs and other trade actions", u: "https://www.brookings.edu/articles/tracking-trumps-tariffs-and-other-trade-actions/", d: "2026-08-06" }
+    ],
+    "ihe": [
+      { t: "Judge Dismisses Trump's Antisemitism Lawsuit Against Harvard", u: "https://www.insidehighered.com/news/government/courts/2026/08/13/trumps-antisemitism-lawsuit-against-harvard-dismissed", d: "2026-08-13" },
+      { t: "How 2 Texas Lawsuits Could Tee Up a National Fight Over Academic Freedom", u: "https://www.insidehighered.com/news/faculty/academic-freedom/2026/08/13/how-2-lawsuits-could-tee-national-academic-freedom-fight", d: "2026-08-13" }
+    ],
+    "chronicle": [
+      { t: "Students Punished for Silent Protest Sue Florida International U.", u: "https://www.chronicle.com/article/students-punished-for-silent-protest-sue-florida-international-u", d: "2026-08-12" },
+      { t: "Has Partisanship Infected Tenure Decisions?", u: "https://www.chronicle.com/article/has-partisanship-infected-tenure-decisions", d: "2026-08-11" }
+    ],
+    "hech": [
+      { t: "'It wouldn't be Head Start anymore:' Providers blast federal proposal to alter preschool program", u: "https://hechingerreport.org/it-wouldnt-be-head-start-anymore-providers-blast-federal-proposal-to-alter-preschool-program/", d: "2026-08-11" },
+      { t: "Writing skills are getting more attention in school", u: "https://hechingerreport.org/writing-skills-are-getting-more-attention-in-school/", d: "2026-08-10" }
+    ],
+    "aeon": [
+      { t: "Mecca and the mall", u: "https://aeon.co/essays/my-pilgrimage-to-mecca-in-the-age-of-the-golf-cart-and-mall", d: "2026-08-12" },
+      { t: "The looting of science fiction", u: "https://aeon.co/essays/silicon-valley-has-a-science-fiction-problem", d: "2026-08-10" }
+    ],
+    "nyrb": [
+      { t: "The Silent Art", u: "https://www.nybooks.com/online/2026/08/13/the-silent-art-kate-millett/", d: "2026-08-13" },
+      { t: "The Road to the Rent Freeze", u: "https://www.nybooks.com/online/2026/08/08/the-road-to-the-rent-freeze/", d: "2026-08-08" }
+    ],
+    "artnews": [
+      { t: "Zeitz MOCAA Enters Post-Kouoh Era, Sotheby's Lands $450M Blaquier Collection: Morning Links", u: "https://www.artnews.com/art-news/news/zeitz-mocaa-enters-post-koyo-kouoh-era-sothebys-lands-450-blaquier-collection-and-more-morning-links-for-august-12-2026-1234794766/", d: "2026-08-12" },
+      { t: "The Great Estate Rush That Is Reshaping the Art Market", u: "https://www.artnews.com/art-news/market/great-estate-rush-that-is-reshaping-art-market-1234794331/", d: "2026-08-10" }
+    ],
+    "variety": [
+      { t: "'The Odyssey' Sets 20,000 Screen China Release, Including Near-Total Imax Commitment", u: "https://variety.com/2026/film/news/the-odyssey-20000-screen-china-release-1236833766/", d: "2026-08-12" },
+      { t: "American Horror Story 13 Trailer Brings Back Jessica Lange, Rubber Man", u: "https://variety.com/2026/tv/news/american-horror-story-13-trailer-jessica-lange-rubber-man-1236833666/", d: "2026-08-12" }
+    ],
+    "bridge": [
+      { t: "Gretchen Whitmer joins chorus opposing Consumers sale of Michigan dams", u: "https://bridgemi.com/michigan-environment-watch/gretchen-whitmer-joins-chorus-opposing-consumers-sale-of-michigan-dams/", d: "2026-08-13" },
+      { t: "John James taps Rep. Jay DeBoyer as running mate in Michigan governor's race", u: "https://bridgemi.com/michigan-government/michigan-governor-hopeful-john-james-taps-rep-jay-deboyer-as-running-mate/", d: "2026-08-13" },
+      { t: "Michigan universities make secret decisions; some lawmakers want change", u: "https://bridgemi.com/talent-education/michigan-universities-make-secret-decisions-some-lawmakers-want-change/", d: "2026-08-12" }
+    ],
+    "mipub": [
+      { t: "As Abdul El-Sayed breaks a barrier, anti-Muslim vitriol surges on multiple fronts", u: "https://www.michiganpublic.org/politics-government/2026-08-13/as-abdul-el-sayed-breaks-a-barrier-anti-muslim-vitriol-surges-on-multiple-fronts", d: "2026-08-13" },
+      { t: "U.S. Army Corps of Engineers approves Line 5 tunnel permit", u: "https://www.michiganpublic.org/environment-climate-change/2026-08-12/u-s-army-corps-of-engineers-approves-line-5-tunnel-permit", d: "2026-08-12" }
+    ],
+    "outlier": [
+      { t: "Backpack giveaways in Detroit: Your guide to free school supplies and family events", u: "https://outliermedia.org/detroit-backpack-giveaway-back-to-school-august/", d: "2026-08-12" },
+      { t: "Preserving Black culture in a time of erasure", u: "https://outliermedia.org/black-bottom-archives-artists-cultural-preservation/", d: "2026-08-10" }
+    ],
+    "lionsroar": [
+      { t: "Sikh & Buddhist", u: "https://www.lionsroar.com/sikh-buddhist/", d: "2026-08-10" },
+      { t: "Remembering the Boundless Heart of Robert A.F. Thurman", u: "https://www.lionsroar.com/remembering-the-boundless-heart-of-robert-thurman/", d: "2026-08-03" }
+    ],
+    "tricycle": [
+      { t: "The King Who Wasn't There", u: "https://tricycle.org/article/the-king-who-wasnt-there/", d: "2026-08-13" },
+      { t: "Thirty-Seven Practices of the Bodhisattva", u: "https://tricycle.org/article/thirty-seven-practices-of-the-bodhisattva/", d: "2026-08-10" }
+    ],
+    "buddhistdoor": [
+      { t: "Bhikkhu Sanghasena Welcomes Dalai Lama on First Visit to Mahabodhi Meditation Centre in 32 Years", u: "https://www.buddhistdoor.net/news/bhikkhu-sanghasena-welcomes-dalai-lama-on-his-first-visit-to-mahabodhi-international-meditation-centre-in-32-years/", d: "2026-08-09" },
+      { t: "17th Seminar of the International Association for Tibetan Studies to Go Ahead Online", u: "https://www.buddhistdoor.net/news/update-17th-seminar-of-the-international-association-for-tibetan-studies-iats-to-go-ahead-online/", d: "2026-08-08" }
+    ],
+    "essentia": [
+      { t: "Reality as limited computational rendering", u: "https://www.essentiafoundation.org/reality-as-limited-computational-rendering/reading/", d: "2026-08-07" },
+      { t: "How is an electron like a cube?", u: "https://www.essentiafoundation.org/how-is-an-electron-like-a-cube/reading/", d: "2026-07-24" }
+    ],
+    "nautilus": [
+      { t: "Psychedelics Might Not Have Evolved to Get Humans High", u: "https://nautil.us/psychedelics-might-not-have-evolved-to-get-humans-high-1283013/", d: "2026-07-24" }
+    ],
+    "ctt-yt": [
+      { t: "Does Suffering Disprove God? | Alex O'Connor", u: "https://www.youtube.com/watch?v=sXINtEvRe2Q", d: "2026-08-13" },
+      { t: "Is Fine-Tuning Evidence for a Multiverse? | Joe Peacock", u: "https://www.youtube.com/watch?v=pLOmgFIwLc8", d: "2026-08-12" }
+    ],
+    "quanta": [
+      { t: "Graduate Student Proves a Quantum Uncertainty Principle for Fractals", u: "https://www.quantamagazine.org/graduate-student-proves-the-fractal-uncertainty-principle-20260812/", d: "2026-08-12" },
+      { t: "Neutrinos From Deep Inside Earth Provide a New Picture of the Mantle", u: "https://www.quantamagazine.org/neutrinos-from-deep-inside-earth-provide-a-new-picture-of-the-mantle-20260807/", d: "2026-08-07" }
+    ],
+    "physworld": [
+      { t: "Crystal symmetry controls hydrogen's quantum tunnelling", u: "https://physicsworld.com/a/crystal-symmetry-controls-hydrogens-quantum-tunnelling/", d: "2026-08-13" },
+      { t: "Researchers propose 'economic Q' metric for judging fusion power plant viability", u: "https://physicsworld.com/a/researchers-propose-economic-q-metric-for-judging-fusion-power-plant-viability/", d: "2026-08-13" }
+    ],
+    "arxivqp": [
+      { t: "A Unified Quantum Interferometric Framework for Interaction-Free Measurement and Delayed-Choice Experiments", u: "https://arxiv.org/abs/2608.12268", d: "2026-08-13" },
+      { t: "Quantum-limited imaging using diffractive optical neural networks", u: "https://arxiv.org/abs/2608.12300", d: "2026-08-13" }
+    ],
+    "tqi": [
+      { t: "Xanadu and University of Alberta Explore Quantum Computing for Cancer Drug Discovery", u: "https://thequantuminsider.com/2026/08/13/xanadu-university-alberta-partner-accelerate-pharmaceutical-discoveries-quantum-computing/", d: "2026-08-13" },
+      { t: "DARPA Funds Qunnect to Improve Quantum Network Reliability", u: "https://thequantuminsider.com/2026/08/13/darpa-taps-qunnect-strengthen-reliability-resilience-quantum-networks/", d: "2026-08-13" }
+    ],
+    "psyalpha": [
+      { t: "Two Years After Rejection, Resilient Quietly Refiles MDMA for PTSD Application", u: "https://psychedelicalpha.com/news/two-years-after-rejection-resilient-quietly-refiles-mdma-for-ptsd-application/", d: "2026-08-12" },
+      { t: "Smooth Sailing: Definium's LSD Voyage Hits Primary and Key Secondary Endpoints in GAD", u: "https://psychedelicalpha.com/news/smooth-sailing-definiums-lsd-voyage-hits-primary-and-key-secondary-endpoints-in-gad/", d: "2026-08-12" }
+    ],
+    "maps": [
+      { t: "MAPS Responds to Report of Progress for MDMA-assisted therapy for PTSD with FDA", u: "https://maps.org/2026/08/10/maps-responds-to-report-of-progress-for-mdma-assisted-therapy-for-ptsd-with-fda/", d: "2026-08-10" }
+    ],
+    "facfocus": [
+      { t: "Student's Perception of UX Design on an LMS Course: Designing Online Courses Students Can Navigate", u: "https://www.facultyfocus.com/articles/online-education/students-perception-of-ux-design-on-an-lms-course-designing-online-courses-students-can-actually-navigate/", d: "2026-08-10" },
+      { t: "Self-Reflecting to Teach with More Cultural Responsiveness", u: "https://www.facultyfocus.com/articles/equality-inclusion-and-diversity/self-reflecting-to-teach-with-more-cultural-responsiveness/", d: "2026-08-07" }
+    ],
+    "tihe": [
+      { t: "My Votes for the 2026 Top Tools for Learning", u: "https://teachinginhighered.com/2026/07/07/2026toptools4learning/", d: "2026-07-07" }
+    ],
+    "criterion": [
+      { t: "Small Town, Big Money: Capitalism Runs Amok in Turumba", u: "https://www.criterion.com/current/posts/9244-small-town-big-money-capitalism-runs-amok-in-turumba", d: "2026-08-13" },
+      { t: "Coup de torchon: \"All Crimes Are Collective\"", u: "https://www.criterion.com/current/posts/9248-coup-de-torchon-all-crimes-are-collective", d: "2026-08-11" }
+    ],
+    "mubi": [
+      { t: "\"He Would Leave Me Totally Free\": Isabelle Huppert on Claude Chabrol", u: "https://mubi.com/en/notebook/posts/he-would-leave-me-totally-free-isabelle-huppert-on-claude-chabrol", d: "2026-08-13" },
+      { t: "Rushes | TIFF Reveals Full Lineup, Vimeo To End VOD Service", u: "https://mubi.com/en/notebook/posts/rushes-tiff-reveals-full-lineup-vimeo-to-end-vod-service-r-i-p-grace-mambo-girl-chang", d: "2026-08-12" }
+    ],
+    "indiewire": [
+      { t: "Rapturous New Trailer for 'Ken Russell's The Devils' Turns Up the Heat on the Movie Event of the Year", u: "https://www.indiewire.com/news/trailers/ken-russells-the-devils-restoration-trailer-1235210331/", d: "2026-08-13" },
+      { t: "John Carpenter, Colman Domingo, and Charlize Theron to Be Honored at Academy Museum Gala", u: "https://www.indiewire.com/awards/industry/john-carpenter-charlize-theron-academy-museum-gala-1235210364/", d: "2026-08-13" }
+    ],
+    "senses": [
+      { t: "Filmmaking at the end of the world: The Quiet Earth", u: "https://www.sensesofcinema.com/2026/cteq/filmmaking-at-the-end-of-the-world-the-quiet-earth/", d: "2026-08-03" },
+      { t: "Consent Puzzles in the Oslo Stories Trilogy by Dag Johan Haugerud", u: "https://www.sensesofcinema.com/2026/feature-articles/consent-puzzles-in-the-oslo-stories-trilogy-by-dag-johan-haugerud/", d: "2026-07-30" }
+    ],
+    "billboard": [
+      { t: "Ella Langley Co-Writer JoyBeth Taylor On 'Choosin' Texas' and 'I Can't Love You Anymore'", u: "https://www.billboard.com/pro/ella-langley-choosin-texas-joybeth-taylor-interview/", d: "2026-08-13" },
+      { t: "Doja Cat Calls Out Tyga for Using AI on His '$tarface' Album", u: "https://www.billboard.com/music/rb-hip-hop/doja-cat-calls-tyga-nsfw-term-ai-new-album-starface-1236315755/", d: "2026-08-13" }
+    ],
+    "pitchfork": [
+      { t: "Dummy Reveal New Album Do You Love the Color of the Sky?", u: "https://pitchfork.com/story/dummy-reveal-new-album-do-you-love-the-color-of-the-sky/", d: "2026-08-13" },
+      { t: "Watch Björk Throw an Eclipse Rave in a Balloon Dress", u: "https://pitchfork.com/story/watch-bjork-throw-an-eclipse-rave-in-a-balloon-dress/", d: "2026-08-13" }
+    ],
+    "rollingstone": [
+      { t: "Charlie Worsham, Welcome to the Grand Ole Opry. It's About Damn Time", u: "https://www.rollingstone.com/music/music-features/charlie-worsham-inducted-grand-ole-opry-good-choice-1235608039/", d: "2026-08-13" },
+      { t: "Where to Buy Last-Minute My Chemical Romance 'Black Parade' Tour Tickets", u: "https://www.rollingstone.com/product-recommendations/tickets/my-chemical-romance-black-parade-tour-tickets-1235607594/", d: "2026-08-13" }
+    ],
+    "polygon": [
+      { t: "Spider-Man: Brand New Day Star Reveals a Deleted Scene With the Movie's Secret Villain", u: "https://www.polygon.com/spider-man-brand-new-day-the-bear-liza-coln-zayas-interview/", d: "2026-08-13" },
+      { t: "Target Begins Pokémon TCG 30th Anniversary Pre-orders, but There's a Catch", u: "https://www.polygon.com/target-pokemon-tcg-30th-anniversary-preorders/", d: "2026-08-13" }
+    ],
+    "avclub": [
+      { t: "An Inconvenient Truth is scarier than it's ever been", u: "https://www.avclub.com/an-inconvenient-truth-al-gore-scarier-than-ever-global-warming-climate-change", d: "2026-08-13" },
+      { t: "Netflix is sending Taika Waititi's 'Willy Wonka went to jail' movie to theaters", u: "https://www.avclub.com/netflix-taika-waititi-willy-wonka-movie-full-theatrical-run", d: "2026-08-13" }
+    ],
+    "verge": [
+      { t: "2K launches new studio to build its 'next blockbuster sports franchise'", u: "https://www.theverge.com/games/979689/2k-sports-franchise-small-axe-studios-soccer", d: "2026-08-13" }
+    ],
+    "teenvogue": [
+      { t: "'Coven Academy' Stars Usher in a New Witchy Disney YA Series", u: "https://www.teenvogue.com/story/coven-academy-malina-weissman-malachi-barton-exclusive-first-look", d: "2026-08-13" }
+    ],
+    "kym": [
+      { t: "Canadian Theater Recreates 'Spoderman' Meme After Missing 'Spider-Man: Brand New Day' Poster", u: "https://knowyourmeme.com/memes/spoderman-spooderman", d: "2026-08-13" },
+      { t: "TikTokers Urging You Not To Visit 'Haymaker Valley' Unless You Want To Throw Hands With Literal Dogs", u: "https://knowyourmeme.com/memes/haymaker-valley", d: "2026-08-13" }
+    ],
+    "bookriot": [
+      { t: "The Bestselling Books of the Week, According to All the Lists", u: "https://bookriot.com/bestselling-books-august-13-2026/", d: "2026-08-13" }
+    ],
+    "dazed": [
+      { t: "Are AI dating apps ushering in the era of swipeless dating?", u: "https://www.dazeddigital.com/life-culture/article/70801/1/are-ai-dating-apps-ushering-in-the-era-of-swipeless-dating", d: "2026-08-13" },
+      { t: "Björk celebrates solar eclipse with celestial rave", u: "https://www.dazeddigital.com/fashion/article/70803/1/photos-from-bjorks-celestial-solar-eclipse-rave-in-iceland", d: "2026-08-13" }
+    ],
+    "letterboxd": [
+      { t: "Hitch-Hikers: Twenty fantastic films inspired by the cinema of Alfred Hitchcock", u: "https://letterboxd.com/journal/hitchcock-inspired-films-starter-pack/", d: "2026-08-13" },
+      { t: "Will Poulter on Union County, character psychology and making movies that matter", u: "https://letterboxd.com/journal/will-poulter-union-county-career-interview/", d: "2026-08-12" }
+    ],
+    "midaily": [
+      { t: "Arts versus crafts: Challenging notions of worthy creations", u: "https://www.michigandaily.com/statement/arts-versus-crafts-challenging-notions-of-worthy-creations/", d: "2026-08-10" },
+      { t: "Halal Bros 2 Go arrives in Ann Arbor", u: "https://www.michigandaily.com/news/business/halal-bros-2-go-arrives-in-ann-arbor/", d: "2026-08-09" }
+    ]
+  }
+};
+
+/* ---------------- State ---------------- */
+const state = {
+  live: new Map(),        // feedId -> [{t,u,d:Date|null}]
+  status: new Map(),      // feedId -> 'live' | 'baked' | 'fail'
+  fetching: false,
+  lastFetch: null,
+  query: ""
+};
+FEEDS.forEach(f => state.status.set(f.id, "baked"));
+
+/* ---------------- Utilities ---------------- */
+const esc = s => String(s ?? "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+function parseDate(x) { const t = Date.parse(x); return isNaN(t) ? null : new Date(t); }
+function timeAgo(d) {
+  if (!d) return "";
+  const s = (Date.now() - d.getTime()) / 1000;
+  if (s < 0) return "";
+  if (s < 3600) return Math.max(1, Math.round(s / 60)) + "m ago";
+  if (s < 86400) return Math.round(s / 3600) + "h ago";
+  if (s < 86400 * 14) return Math.round(s / 86400) + "d ago";
+  return d.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+function itemsOf(id) {
+  const live = state.live.get(id);
+  if (live && live.length) return live;
+  return (BAKED.items[id] || []).map(it => ({ t: it.t, u: it.u, d: parseDate(it.d) }));
+}
+function titleKey(t) { return t.toLowerCase().replace(/[^a-z0-9Ѐ-ӿ]+/g, "").slice(0, 80); }
+
+/* ---------------- Fetch layer ---------------- */
+const PROXIES = [
+  u => "https://api.allorigins.win/raw?url=" + encodeURIComponent(u),
+  u => "https://corsproxy.io/?url=" + encodeURIComponent(u),
+  u => "https://api.codetabs.com/v1/proxy?quest=" + encodeURIComponent(u)
+];
+function fetchTimeout(url, ms) {
+  const c = new AbortController();
+  const t = setTimeout(() => c.abort(), ms);
+  return fetch(url, { signal: c.signal, redirect: "follow" }).finally(() => clearTimeout(t));
+}
+async function fetchFeedText(url) {
+  try { const r = await fetchTimeout(url, 7000); if (r.ok) { const tx = await r.text(); if (tx.length > 200) return tx; } } catch (e) {}
+  for (const p of PROXIES) {
+    try { const r = await fetchTimeout(p(url), 11000); if (r.ok) { const tx = await r.text(); if (tx.length > 200) return tx; } } catch (e) {}
+  }
+  throw new Error("unreachable");
+}
+function parseFeed(xml, feed) {
+  const doc = new DOMParser().parseFromString(xml.trim().replace(/^﻿/, ""), "text/xml");
+  if (doc.querySelector("parsererror")) throw new Error("parse");
+  let nodes = Array.from(doc.querySelectorAll("item"));
+  const atom = !nodes.length;
+  if (atom) nodes = Array.from(doc.querySelectorAll("entry"));
+  const out = [];
+  for (const n of nodes.slice(0, 25)) {
+    let t = (n.querySelector("title")?.textContent || "").trim();
+    if (!t) continue;
+    if (feed.gn) t = t.replace(/\s+-\s+[^\-–—]{2,60}$/, "");
+    let u = "";
+    if (atom) {
+      const alt = n.querySelector('link[rel="alternate"]') || n.querySelector("link");
+      u = alt ? (alt.getAttribute("href") || "") : "";
+    } else {
+      u = (n.querySelector("link")?.textContent || "").trim();
+      if (!u) u = n.querySelector("link")?.getAttribute("href") || "";
+      if (!u) u = (n.querySelector("guid")?.textContent || "").trim();
+    }
+    const dRaw = n.querySelector("pubDate")?.textContent
+      || n.getElementsByTagName("dc:date")[0]?.textContent
+      || n.querySelector("published")?.textContent
+      || n.querySelector("updated")?.textContent || "";
+    out.push({ t, u, d: parseDate(dRaw) });
+  }
+  if (!out.length) throw new Error("empty");
+  return out;
+}
+let renderTimer = null;
+function scheduleRender() { clearTimeout(renderTimer); renderTimer = setTimeout(renderAll, 600); }
+async function fetchAll() {
+  if (state.fetching) return;
+  state.fetching = true;
+  updateHeader();
+  const queue = FEEDS.slice();
+  let done = 0;
+  async function worker() {
+    while (queue.length) {
+      const f = queue.shift();
+      try {
+        const txt = await fetchFeedText(f.u);
+        state.live.set(f.id, parseFeed(txt, f));
+        state.status.set(f.id, "live");
+      } catch (e) {
+        if (!(BAKED.items[f.id] || []).length) state.status.set(f.id, "fail");
+      }
+      done++;
+      updateHeader();
+      scheduleRender();
+    }
+  }
+  await Promise.all(Array.from({ length: 8 }, worker));
+  state.fetching = false;
+  state.lastFetch = new Date();
+  updateHeader();
+  renderAll();
+}
+
+/* ---------------- Render helpers ---------------- */
+function badge(p) {
+  const per = PERS[p] || PERS.none;
+  if (!per.label) return "";
+  return `<span class="badge"><i style="background:var(${per.v})"></i>${per.label}</span>`;
+}
+function itemLi(it, srcName) {
+  const meta = [srcName, timeAgo(it.d)].filter(Boolean).join(" · ");
+  return `<li class="it" data-s="${esc((it.t + " " + (srcName || "")).toLowerCase())}">
+    <a href="${esc(it.u)}" target="_blank" rel="noopener">${esc(it.t)}</a>
+    ${meta ? `<span class="meta">${esc(meta)}</span>` : ""}</li>`;
+}
+function feedCard(id, cap = 4) {
+  const f = FEED_BY_ID[id];
+  const its = itemsOf(id).slice(0, cap);
+  const st = state.status.get(id);
+  const dot = `<span class="src-dot ${st}" title="${st === "live" ? "live feed" : st === "baked" ? "snapshot from last rebuild" : "feed unreachable"}"></span>`;
+  const body = its.length ? `<ul class="items">${its.map(it => itemLi(it)).join("")}</ul>`
+    : `<div class="empty">Nothing loaded — open the source directly.</div>`;
+  return `<div class="card" data-card="${f.id}">
+    <h3>${dot}<a href="${esc(f.home)}" target="_blank" rel="noopener">${f.n}</a>${badge(f.p)}</h3>${body}</div>`;
+}
+function mergedItems(ids, { filter = null, cap = 10 } = {}) {
+  const seen = new Set(); const out = [];
+  for (const id of ids) {
+    const f = FEED_BY_ID[id];
+    for (const it of itemsOf(id)) {
+      if (filter && !filter.test(it.t)) continue;
+      const k = titleKey(it.t);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      out.push({ ...it, src: f.n.replace(/ —.*$/, ""), p: f.p });
+    }
+  }
+  out.sort((a, b) => (b.d?.getTime() || 0) - (a.d?.getTime() || 0));
+  return out.slice(0, cap);
+}
+function mergedCard(title, ids, opts = {}) {
+  const its = mergedItems(ids, opts);
+  const body = its.length ? `<ul class="items">${its.map(it => itemLi(it, it.src)).join("")}</ul>`
+    : `<div class="empty">No matching headlines loaded yet.</div>`;
+  return `<div class="card"><h3>${title}</h3>${body}</div>`;
+}
+function colhead(t, sub = "") {
+  return `<div class="colhead">${t}${sub ? `<span class="sub">${sub}</span>` : ""}</div>`;
+}
+
+/* ---------------- Tab renderers ---------------- */
+function renderToday() {
+  const briefHtml = BAKED.brief.map(g => `
+    <div class="bgroup"><span class="glabel">${esc(g.h)}</span><ul>
+      ${g.items.map(b => `<li>${esc(b.t)} <span class="srcchip">${b.s.map(s => `<a href="${esc(s[1])}" target="_blank" rel="noopener">${esc(s[0])}</a>`).join(" · ")}</span></li>`).join("")}
+    </ul></div>`).join("");
+  const hooksHtml = BAKED.hooks.map(h => `
+    <div class="hook">
+      <div class="story">${esc(h.story)} <span class="srcchip"><a href="${esc(h.src[1])}" target="_blank" rel="noopener">${esc(h.src[0])}</a></span></div>
+      <div class="concept">Concept: <b>${esc(h.concept)}</b></div>
+      <div class="q">${esc(h.q)}</div>
+    </div>`).join("");
+  document.getElementById("tab-today").innerHTML = `
+    <div class="cols c2" style="align-items:start">
+      <div>
+        <div class="card brief"><h2>Morning brief</h2>
+          <div style="font-size:12px;color:var(--muted)">Written at the last rebuild — ${esc(BAKED.builtLabel)}. Interpretive claims are attributed; read across the chips.</div>
+          ${briefHtml}
+        </div>
+      </div>
+      <div>
+        <div class="card"><h2 style="font-family:Charter,'Iowan Old Style',Georgia,serif;font-size:19px;margin:0 0 8px">Rates &amp; FX</h2>
+          <div class="fxrow" id="fx"><div class="empty">Loading live FX&hellip;</div></div>
+          <div class="quicklinks">Markets:
+            <a href="https://www.google.com/finance/quote/.INX:INDEXSP" target="_blank" rel="noopener">S&amp;P 500</a> ·
+            <a href="https://www.google.com/finance/quote/.IXIC:INDEXNASDAQ" target="_blank" rel="noopener">Nasdaq</a> ·
+            <a href="https://fred.stlouisfed.org/series/DGS10" target="_blank" rel="noopener">10-yr Treasury</a> ·
+            <a href="https://www.google.com/finance/quote/USD-RUB" target="_blank" rel="noopener">USD/RUB</a> ·
+            <a href="https://www.cbr.ru/eng/hd_base/keyrate/" target="_blank" rel="noopener">CBR key rate</a> ·
+            <a href="https://markets.ft.com/data" target="_blank" rel="noopener">FT markets</a></div>
+        </div>
+        <div class="card panel"><h2>For your classroom</h2>
+          <div style="font-size:12px;color:var(--muted)">Three current stories mapped to micro concepts — refreshed at each rebuild.</div>
+          ${hooksHtml}
+        </div>
+      </div>
+    </div>
+    ${colhead("Freshest across all sources", "live pull, deduplicated")}
+    <div class="cols c2">
+      <div>${mergedCard("Latest", ["bbc","guardian","npr-world","dw","aj","ap","reuters","meduza-en","mt","tass","iran-roll"], { cap: 12 })}</div>
+      <div>${mergedCard("Latest — analysis, econ &amp; ideas", ["diesen","sonar21","mearsheimer","rs","ft","bloomberg","mr","kff","stat","ihe","aeon","artnews","bridge"], { cap: 12 })}</div>
+    </div>`;
+  renderFx();
+}
+function renderGeo() {
+  document.getElementById("tab-geo").innerHTML = `
+    ${colhead("Russia &middot; Ukraine", "three vantage points, side by side")}
+    <div class="cols c3">
+      <div>
+        ${mergedCard(`From the wires ${badge("wire")}`, ["bbc","guardian","npr-world","dw","aj","ap","reuters"], { filter: RU_KW, cap: 9 })}
+        ${mergedCard(`Analysis &amp; think tanks ${badge("west")}${badge("acad")}`, ["isw","wotr","fa","icg","politika","rusmatters"], { cap: 8 })}
+      </div>
+      <div>
+        ${feedCard("diesen", 3)}${feedCard("sonar21", 3)}${feedCard("mearsheimer", 3)}${feedCard("sachs", 3)}
+        ${feedCard("macgregor-yt", 3)}${feedCard("judging-yt", 3)}${feedCard("diesen-yt", 3)}${feedCard("rs", 3)}
+      </div>
+      <div>
+        ${feedCard("meduza-en", 4)}${feedCard("meduza-ru", 3)}${feedCard("mt", 3)}${feedCard("tass", 4)}${feedCard("kommersant", 3)}${feedCard("rbc", 3)}
+      </div>
+    </div>
+    ${colhead("Iran &middot; Middle East")}
+    <div class="cols c2">
+      <div>${mergedCard("Coverage", ["iran-roll","amwaj","aj"], { filter: IRAN_KW, cap: 10 })}</div>
+      <div>${mergedCard("Analysis &amp; heterodox reads", ["rs","diesen","sonar21","mearsheimer","judging-yt","icg","fa"], { filter: IRAN_KW, cap: 10 })}</div>
+    </div>`;
+}
+function renderEcon() {
+  document.getElementById("tab-econ").innerHTML = `
+    <div class="cols c2">
+      <div>${colhead("Markets &amp; macro")}
+        ${feedCard("ft", 5)}${feedCard("bloomberg", 5)}${feedCard("econ-fe", 4)}${feedCard("cr", 3)}</div>
+      <div>${colhead("Ideas &amp; research")}
+        ${feedCard("mr", 4)}${feedCard("conversable", 3)}${feedCard("voxeu", 4)}${feedCard("imf", 3)}${feedCard("nber", 4)}</div>
+    </div>`;
+}
+function renderHealth() {
+  document.getElementById("tab-health").innerHTML = `
+    <div class="cols c2">
+      <div>${colhead("Health economics &amp; industry")}
+        ${feedCard("kff", 5)}${feedCard("stat", 5)}${feedCard("hcd", 4)}${feedCard("tie", 3)}${feedCard("ha", 4)}</div>
+      <div>${colhead("US policy")}
+        ${feedCard("npr-pol", 5)}${feedCard("brookings", 5)}</div>
+    </div>`;
+}
+function renderMichigan() {
+  document.getElementById("tab-michigan").innerHTML = `
+    <div class="cols c2">
+      <div>${colhead("Detroit &amp; statewide")}
+        ${feedCard("bridge", 5)}${feedCard("freep", 5)}${feedCard("mipub", 4)}${feedCard("outlier", 4)}</div>
+      <div>${colhead("Ann Arbor &amp; campus")}
+        ${feedCard("mlive", 5)}${feedCard("midaily", 5)}</div>
+    </div>`;
+}
+function renderEducation() {
+  document.getElementById("tab-education").innerHTML = `
+    <div class="cols c2">
+      <div>${colhead("Sector news")}
+        ${feedCard("ihe", 5)}${feedCard("chronicle", 5)}${feedCard("hech", 4)}</div>
+      <div>${colhead("Teaching &amp; pedagogy", "tips, course design, classroom practice")}
+        ${feedCard("facfocus", 5)}${feedCard("tihe", 4)}${feedCard("thecampus", 4)}</div>
+    </div>`;
+}
+function renderMind() {
+  document.getElementById("tab-mind").innerHTML = `
+    <div class="cols c3">
+      <div>${colhead("Consciousness &amp; contemplative")}
+        ${mergedCard("Essays on mind &amp; nonduality", ["aeon","nautilus"], { filter: MIND_KW, cap: 6 })}
+        ${feedCard("essentia", 3)}${feedCard("lionsroar", 3)}${feedCard("tricycle", 3)}${feedCard("buddhistdoor", 3)}${feedCard("ctt-yt", 3)}</div>
+      <div>${colhead("Quantum &amp; physics")}
+        ${feedCard("quanta", 4)}${feedCard("physworld", 4)}${feedCard("tqi", 4)}${feedCard("arxivqp", 5)}</div>
+      <div>${colhead("Psychedelic science")}
+        ${feedCard("psyalpha", 4)}${feedCard("psypost-psy", 4)}${feedCard("maps", 3)}${feedCard("psyroll", 5)}</div>
+    </div>`;
+}
+function renderCulture() {
+  document.getElementById("tab-culture").innerHTML = `
+    <div class="cols c3">
+      <div>${colhead("Ideas &amp; essays")}
+        ${feedCard("aeon", 4)}${feedCard("atlantic", 4)}${feedCard("nyc", 4)}${feedCard("nyrb", 4)}</div>
+      <div>${colhead("Film &amp; auteur watch")}
+        ${mergedCard("Director watch: Lynch · Noé · von Trier · Refn", ["auteur-roll","indiewire","mubi","criterion","gc","variety","avclub","letterboxd"], { filter: AUTEUR_KW, cap: 7 })}
+        ${feedCard("criterion", 3)}${feedCard("mubi", 3)}${feedCard("senses", 3)}${feedCard("indiewire", 3)}</div>
+      <div>${colhead("Arts · style &amp; entertainment")}
+        ${feedCard("artnews", 3)}${feedCard("gc", 3)}${feedCard("ftla", 3)}${feedCard("vogue", 3)}${feedCard("variety", 3)}${feedCard("bof", 3)}</div>
+    </div>`;
+}
+function renderPulse() {
+  const cards = (BAKED.pulse || []).map(p => `
+    <div class="card">
+      <div class="pcat">${esc(p.cat)}</div>
+      <div class="pt">${esc(p.t)}</div>
+      <div class="pwhy">${esc(p.why)}</div>
+      <div class="prec"><b>Try:</b> ${esc(p.rec)} <span class="srcchip"><a href="${esc(p.src[1])}" target="_blank" rel="noopener">${esc(p.src[0])}</a></span></div>
+    </div>`).join("");
+  const cn = BAKED.classnote ? `
+    <div class="card"><div class="hook" style="margin:2px 0">
+      <div class="concept">This week's youth-market micro example</div>
+      <div class="story" style="margin-top:4px">${esc(BAKED.classnote.t)} <span class="srcchip"><a href="${esc(BAKED.classnote.src[1])}" target="_blank" rel="noopener">${esc(BAKED.classnote.src[0])}</a></span></div>
+    </div></div>` : "";
+  document.getElementById("tab-pulse").innerHTML = `
+    ${colhead("Pulse check", "what under-25s are reading, hearing, watching — rewritten at each refresh (" + esc(BAKED.builtLabel) + ")")}
+    <div class="pulse-grid">${cards}</div>
+    <div style="margin-top:14px">${cn}</div>
+    <div class="quicklinks" style="margin:2px 0 6px">Charts &amp; rabbit holes:
+      <a href="https://www.billboard.com/charts/hot-100/" target="_blank" rel="noopener">Hot 100</a> ·
+      <a href="https://charts.spotify.com/charts/overview/us" target="_blank" rel="noopener">Spotify Charts</a> ·
+      <a href="https://letterboxd.com/films/popular/this/week/" target="_blank" rel="noopener">Letterboxd popular</a> ·
+      <a href="https://www.youtube.com/feed/trending" target="_blank" rel="noopener">YouTube trending</a> ·
+      <a href="https://www.the-numbers.com/weekend-box-office-chart" target="_blank" rel="noopener">Box office</a> ·
+      <a href="https://knowyourmeme.com/memes/trending" target="_blank" rel="noopener">Trending memes</a></div>
+    ${colhead("The beat press")}
+    <div class="cols c3">
+      <div>${colhead("Music")}${feedCard("billboard", 4)}${feedCard("pitchfork", 4)}${feedCard("rollingstone", 4)}</div>
+      <div>${colhead("Screens &amp; play")}${feedCard("avclub", 4)}${feedCard("letterboxd", 3)}${feedCard("polygon", 4)}${feedCard("verge", 3)}</div>
+      <div>${colhead("Reading, style &amp; online")}${feedCard("bookriot", 3)}${feedCard("teenvogue", 3)}${feedCard("dazed", 3)}${feedCard("kym", 3)}${feedCard("ypulse", 3)}</div>
+    </div>`;
+}
+function renderAbout() {
+  const legendRows = ["wire","west","acad","realist","ruind","rust","rudom"].map(k =>
+    `<span class="badge"><i style="background:var(${PERS[k].v})"></i>${PERS[k].label}</span><span>${{
+      wire: "Wire services and large newsrooms. Fast and factual on events; framing tends to follow Western official sourcing.",
+      west: "Defense and foreign-policy analysis shops (ISW, War on the Rocks, Crisis Group, Foreign Affairs). Rigorous, but institutionally close to Western policy debates.",
+      acad: "University-affiliated or scholarly aggregation (Carnegie Politika, Russia Matters, NBER, VoxEU, Health Affairs). Slower, source-critical, citation-friendly.",
+      realist: "Your five voices plus Responsible Statecraft and Judging Freedom. Strong on questioning official narratives; note they appear frequently on each other's shows, so treat the cluster as one correlated perspective, not several independent confirmations.",
+      ruind: "Russian newsrooms in exile (Meduza, Moscow Times). Independent of the Kremlin; oppositional by circumstance.",
+      rust: "State wire. Read it to know the official Kremlin line — that is its value and its bias.",
+      rudom: "Business dailies operating inside Russia under censorship (Kommersant, RBC). Useful on the economy; constrained on politics."
+    }[k]}</span>`).join("");
+  document.getElementById("tab-about").innerHTML = `
+    <div class="card about" style="max-width:900px">
+      <h2 style="font-family:Charter,Georgia,serif;margin:0 0 10px">How this desk works</h2>
+      <p><b>The design premise: no single source is unbiased — so this page doesn't promise one.</b> Every outlet here, including each of your five preferred commentators, has a vantage point. Instead of hiding that, the desk labels it and puts perspectives side by side. When the wires and the realists describe the same event differently, that gap is itself information — it is usually where the interesting research question lives.</p>
+      <div class="legend">${legendRows}</div>
+      <p><b>A practical habit from the classroom:</b> when any source — mainstream or heterodox — makes a falsifiable prediction (“the front will collapse by spring”, “sanctions will crater the ruble”), jot it down and revisit in three months. Track records, not vibes, are the academic's bias detector. The side-by-side columns in Geopolitics are built to make that easy.</p>
+      <p><b>Freshness:</b> a scheduled task rewrites the Morning brief, the classroom hooks, and the saved headlines every morning around 7:00. Independently, every time you open the page it re-pulls all ~60 feeds live (green dot = live; gray = snapshot from the last rebuild; red = source unreachable right now). The FX tiles pull European Central Bank reference rates live.</p>
+      <p><b>Paywalls &amp; plumbing:</b> FT and The Economist feeds carry headlines; the click may hit a paywall. Sources without a usable public feed arrive via a Google News query (their headlines, Google's plumbing). YouTube cards list each channel's latest uploads.</p>
+      <p><b>Student Pulse:</b> a standing answer to “what are my undergraduates into right now?” Each refresh rewrites the Pulse check — what they're listening to, watching, reading, playing, and doing online — with a line of analysis and one practical way in for you, plus a weekly youth-market story that doubles as a micro example. The aim is fluency, not imitation: knowing what Haymaker Valley is beats referencing it.</p>
+      <p><b>Mind &amp; Cosmos:</b> your standing shelf for consciousness studies, Dzogchen and Tibetan Buddhism, Advaita Vedanta, quantum physics and computing, and psychedelics research — mixing contemplative magazines (Tricycle, Lion's Roar, Buddhistdoor), consciousness-first essays (Essentia, Aeon/Nautilus filtered, Closer to Truth), hard physics (Quanta, Physics World, new arXiv quant-ph papers), and the psychedelic research pipeline (Psychedelic Alpha, PsyPost, MAPS). Teaching &amp; pedagogy has its own column under Higher Ed, and the Culture tab keeps a Director watch on Lynch, Noé, von Trier, and Refn alongside Criterion, MUBI, and Senses of Cinema.</p>
+      <p><b>Culture without the WSJ:</b> FT Life &amp; Arts and Aeon are the closest substitutes for the WSJ weekend essay; the New Yorker, NYRB, and The Atlantic cover the long-form review beat; ARTnews and Guardian Culture carry art-world news; Vogue, Business of Fashion, and Variety keep a lighter eye on style and entertainment.</p>
+    </div>`;
+}
+function renderAll() {
+  renderToday(); renderGeo(); renderEcon(); renderHealth(); renderMichigan(); renderEducation(); renderMind(); renderPulse(); renderCulture(); renderAbout();
+  applySearch();
+}
+
+/* ---------------- FX tiles (ECB reference rates via Frankfurter, CORS-open) ---------------- */
+async function renderFx() {
+  const el = document.getElementById("fx");
+  if (!el) return;
+  try {
+    const [nowR, prevR] = await Promise.all([
+      fetchTimeout("https://api.frankfurter.dev/v1/latest?base=USD&symbols=EUR,GBP,JPY,CNY", 8000).then(r => r.json()),
+      fetchTimeout(prevDateUrl(), 8000).then(r => r.json())
+    ]);
+    const defs = [
+      { k: "EUR / USD", f: r => 1 / r.rates.EUR, dp: 4 },
+      { k: "GBP / USD", f: r => 1 / r.rates.GBP, dp: 4 },
+      { k: "USD / JPY", f: r => r.rates.JPY, dp: 2 },
+      { k: "USD / CNY", f: r => r.rates.CNY, dp: 3 }
+    ];
+    el.innerHTML = defs.map(d => {
+      const v = d.f(nowR), pv = d.f(prevR);
+      const pct = ((v - pv) / pv) * 100;
+      const dir = pct >= 0.005 ? "up" : pct <= -0.005 ? "down" : "";
+      const arrow = dir === "up" ? "▲" : dir === "down" ? "▼" : "–";
+      return `<div class="tile"><div class="k">${d.k}</div><div class="v">${v.toFixed(d.dp)}</div>
+        <div class="d ${dir}">${arrow} ${Math.abs(pct).toFixed(2)}% <span style="color:var(--muted)">vs prior day</span></div></div>`;
+    }).join("") + `<div class="tile"><div class="k">ECB ref rates</div><div class="v" style="font-size:13px;font-weight:400;color:var(--ink2)">as of ${esc(nowR.date)}</div></div>`;
+  } catch (e) {
+    el.innerHTML = `<div class="empty">Live FX unavailable — use the market links below.</div>`;
+  }
+}
+function prevDateUrl() {
+  const d = new Date(Date.now() - 86400000 * (new Date().getDay() === 1 ? 3 : 1));
+  const iso = d.toISOString().slice(0, 10);
+  return `https://api.frankfurter.dev/v1/${iso}?base=USD&symbols=EUR,GBP,JPY,CNY`;
+}
+
+/* ---------------- Header / chrome ---------------- */
+function updateHeader() {
+  const live = FEEDS.filter(f => state.status.get(f.id) === "live").length;
+  const fail = FEEDS.filter(f => state.status.get(f.id) === "fail").length;
+  const dot = document.getElementById("liveDot");
+  const txt = document.getElementById("statusText");
+  if (state.fetching) { txt.textContent = `pulling live feeds… ${live}/${FEEDS.length}`; dot.classList.toggle("on", live > 0); }
+  else if (live > 0) { txt.textContent = `${live} live · ${FEEDS.length - live - fail} snapshot${fail ? ` · ${fail} unreachable` : ""}`; dot.classList.add("on"); }
+  else { txt.textContent = `snapshot of ${BAKED.builtLabel}`; dot.classList.remove("on"); }
+  document.getElementById("refreshBtn").disabled = state.fetching;
+}
+function applySearch() {
+  const q = state.query.trim().toLowerCase();
+  let n = 0, tot = 0;
+  document.querySelectorAll("li.it").forEach(li => {
+    tot++;
+    const hit = !q || (li.dataset.s || "").includes(q);
+    li.classList.toggle("hiddenBySearch", !hit);
+    if (hit) n++;
+  });
+  document.getElementById("searchCount").textContent = q ? `${n} match${n === 1 ? "" : "es"}` : "";
+}
+function initChrome() {
+  document.getElementById("dateline").textContent = new Date().toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+  document.getElementById("nav").addEventListener("click", e => {
+    const b = e.target.closest(".tab-btn"); if (!b) return;
+    document.querySelectorAll(".tab-btn").forEach(x => x.classList.toggle("active", x === b));
+    document.querySelectorAll("section.tab").forEach(s => s.classList.toggle("active", s.id === "tab-" + b.dataset.tab));
+  });
+  document.getElementById("refreshBtn").addEventListener("click", fetchAll);
+  const themes = ["auto", "light", "dark"]; let ti = 0;
+  document.getElementById("themeBtn").addEventListener("click", () => {
+    ti = (ti + 1) % 3;
+    const t = themes[ti];
+    if (t === "auto") delete document.documentElement.dataset.theme;
+    else document.documentElement.dataset.theme = t;
+    document.getElementById("themeBtn").textContent = "Theme: " + t[0].toUpperCase() + t.slice(1);
+  });
+  document.getElementById("search").addEventListener("input", e => { state.query = e.target.value; applySearch(); });
+}
+
+/* ---------------- Boot ---------------- */
+initChrome();
+renderAll();
+updateHeader();
+fetchAll();
+</script>
+</body>
+</html>
